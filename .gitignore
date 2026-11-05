@@ -1,0 +1,16 @@
+# Sources de référence GLPI (lecture seule, non versionnées)
+/.glpi-src/
+
+# Dépendances Composer
+/vendor/
+
+# PHPUnit
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Éditeurs et système
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
