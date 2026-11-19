@@ -123,3 +123,12 @@ Appels :
 |---|---|---|---|
 | `plugin_<key>_getAddSearchOptionsNew($itemtype)` | `src/Plugin.php:2175-2185` | `src/Plugin.php:2171-2181` | = (bloc identique) ; chaque option doit avoir un `id`, doublon → `E_USER_WARNING`. |
 | `joinparams.jointype = 'child'` | `src/Glpi/Search/Provider/SQLProvider.php:2361` | `…/SQLProvider.php:2448` | Existe dans les deux ; détail à revérifier à l'étape 6. |
+
+## Extensions PHP utilisées par `src/PathNormalizer.php`
+
+| Extension | 11.0.8 | 12.0.1 | Usage |
+|---|---|---|---|
+| `ext-intl` (`Normalizer`) | exigée, `composer.json:24` | exigée, `composer.json:24` | Forme NFKC pour détecter `..` et séparateurs déguisés (pleine chasse). |
+| `ext-mbstring` | exigée, `composer.json:27` | exigée, `composer.json:27` | Contrôle UTF-8, longueur en caractères, casse (`MB_CASE_UPPER_SIMPLE`). |
+
+La classe n'utilise aucune API du cœur de GLPI.
