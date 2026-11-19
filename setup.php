@@ -10,6 +10,8 @@
  * @link    https://github.com/cicou02/glpi-officelinks
  */
 
+use Glpi\Plugin\Hooks;
+
 // Version du plugin.
 define('PLUGIN_OFFICELINKS_VERSION', '0.1.0');
 
@@ -25,14 +27,17 @@ define('PLUGIN_OFFICELINKS_MIN_PHP', '8.2');
  * Initialisation du plugin : enregistrement des hooks.
  *
  * Appelée par Plugin::init() pour chaque plugin actif.
- * Étape 1 (squelette) : aucun hook n'est encore enregistré.
  *
  * @return void
  */
 function plugin_init_officelinks(): void
 {
-    // Les hooks (fiche Document, configuration, ressources JS/CSS,
-    // recherche) seront enregistrés aux étapes suivantes.
+    /** @var array<string, array<string, mixed>> $PLUGIN_HOOKS */
+    global $PLUGIN_HOOKS;
+
+    // Bouton « Configurer » dans Configuration > Plugins. Le droit
+    // « config » en mise à jour est vérifié par la page elle-même.
+    $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['officelinks'] = 'front/config.form.php';
 }
 
 /**

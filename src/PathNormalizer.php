@@ -416,9 +416,47 @@ final class PathNormalizer
     }
 
     /**
+     * Forme canonique d'un chemin UNC de configuration (racine, cible de
+     * lecteur, alias) : hôte et partage au minimum, séparateurs « \ »,
+     * sans « \ » final. Renvoie null si l'entrée est invalide.
+     *
+     * Utilisée par la page de configuration ; le constructeur applique la
+     * même règle et ignore les entrées refusées.
+     */
+    public static function canonicalizeConfigPath(mixed $value): ?string
+    {
+        $segments = self::tryParseConfigUnc($value);
+        if ($segments === null) {
+            return null;
+        }
+        $canonical = '\\\\' . implode('\\', $segments);
+        return mb_strlen($canonical, 'UTF-8') <= self::MAX_LENGTH ? $canonical : null;
+    }
+
+    /**
+     * Indique si un dossier UNC canonique (après application des alias
+     * d'hôtes) est une racine autorisée ou se trouve sous l'une d'elles.
+     * Sert à signaler un lecteur ou un alias qui ne mènerait à rien.
+     */
+    public function isUnderAllowedRoot(string $canonical): bool
+    {
+        $segments = self::tryParseConfigUnc($canonical);
+        if ($segments === null) {
+            return false;
+        }
+        $segments = $this->applyHostAliases($segments);
+        foreach ($this->allowedRoots as $root) {
+            if (self::startsWithSegments($segments, $root)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * « i », « I: », « i:\ » => « I: » ; null si ce n'est pas une lettre.
      */
-    private static function normalizeDriveKey(mixed $key): ?string
+    public static function normalizeDriveKey(mixed $key): ?string
     {
         if (!is_string($key)) {
             return null;

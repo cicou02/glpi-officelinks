@@ -7,29 +7,11 @@
  * @link    https://github.com/cicou02/glpi-officelinks
  */
 
-/** Contexte de configuration du plugin dans la table glpi_configs. */
-const PLUGIN_OFFICELINKS_CONFIG_CONTEXT = 'plugin:officelinks';
+use GlpiPlugin\Officelinks\PluginConfig;
+use GlpiPlugin\Officelinks\Settings;
 
 /** Table des chemins UNC associés aux documents. */
 const PLUGIN_OFFICELINKS_TABLE = 'glpi_plugin_officelinks_documents';
-
-/**
- * Configuration par défaut, volontairement vide.
- *
- * Les listes sont stockées en JSON (glpi_configs.value est un texte).
- * allowed_roots vide => tout enregistrement de chemin est refusé.
- *
- * @return array<string, string>
- */
-function plugin_officelinks_default_config(): array
-{
-    return [
-        'allowed_roots'     => '[]', // liste de racines UNC autorisées
-        'drive_mappings'    => '{}', // lettre de lecteur => racine UNC
-        'host_aliases'      => '{}', // chemin serveur cible => chemin d'espace de noms DFS
-        'enable_file_links' => '0',  // liens file:// désactivés par défaut
-    ];
-}
 
 /**
  * Installation (et réinstallation) du plugin.
@@ -67,11 +49,13 @@ function plugin_officelinks_install(array $args = []): bool
         );
     }
 
-    // Valeurs par défaut sans écraser une configuration existante.
-    $current = Config::getConfigurationValues(PLUGIN_OFFICELINKS_CONFIG_CONTEXT);
-    $missing = array_diff_key(plugin_officelinks_default_config(), $current);
+    // Valeurs par défaut (tout vide, liens file:// désactivés) sans écraser
+    // une configuration existante. L'autoloader du plugin est actif ici
+    // (Plugin::install() appelle Plugin::load(), cf. docs/compat.md).
+    $current = Config::getConfigurationValues(PluginConfig::CONTEXT);
+    $missing = array_diff_key(Settings::defaultStored(), $current);
     if ($missing !== []) {
-        Config::setConfigurationValues(PLUGIN_OFFICELINKS_CONFIG_CONTEXT, $missing);
+        Config::setConfigurationValues(PluginConfig::CONTEXT, $missing);
     }
 
     return true;
@@ -91,9 +75,9 @@ function plugin_officelinks_uninstall(): bool
 
     // Supprime toutes les clés du contexte, y compris d'éventuelles
     // clés ajoutées par une version ultérieure.
-    $keys = array_keys(Config::getConfigurationValues(PLUGIN_OFFICELINKS_CONFIG_CONTEXT));
+    $keys = array_keys(Config::getConfigurationValues(PluginConfig::CONTEXT));
     if ($keys !== []) {
-        Config::deleteConfigurationValues(PLUGIN_OFFICELINKS_CONFIG_CONTEXT, $keys);
+        Config::deleteConfigurationValues(PluginConfig::CONTEXT, $keys);
     }
 
     return true;

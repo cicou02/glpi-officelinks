@@ -23,6 +23,9 @@ Dernière vérification : 2026-11-05.
 | D7 | `CommonDBTM::can()` | `can($ID, int $right, ?array &$input = null): bool` (`src/CommonDBTM.php:2954`) | `can($ID, int $right, ?array &$input = null, null &$reauth_needed = null): bool` (`src/CommonDBTM.php:3013`) | Appel compatible ; ne jamais surcharger (règle « pas de sous-classe »). |
 | D8 | Langues | `$CFG_GLPI['languages'][$lang][1]` (`src/Plugin.php:553`, `fr_FR` → `fr_FR.mo`, `src/autoload/CFG_GLPI.php:75`) | objets `Language->mo_file` (`src/Plugin.php:551`, défaut `{code}.mo`, `src/Glpi/Locale/Language.php:69-78`) | Même nom de fichier : `locales/fr_FR.mo`. |
 | D9 | Hook `show_in_timeline` | déprécié (`Hooks.php:731`) | supprimé | Non utilisé. |
+| D10 | `inc/includes.php` | sans effet (contrôles de variables globales obsolètes uniquement) | `Toolbox::deprecated('The inc/includes.php file is obsolete.')` | Ne pas l'inclure dans `front/` : l'amorçage est assuré par le routeur. |
+| D11 | `Plugin::getWebDir()` | `@deprecated 11.0` (`src/Plugin.php:3131`) | **supprimée** | Construire les URL avec `$CFG_GLPI['root_doc'] . '/plugins/officelinks/...'`. |
+| D12 | Contrôle CSRF des POST (`CheckCsrfListener`) | jeton `_glpi_csrf_token` exigé dans le corps (`Session::checkCSRF()`, `src/Glpi/Kernel/Listener/ControllerListener/CheckCsrfListener.php`) | en-têtes `Sec-Fetch-Site` / `Origin` | Formulaire du plugin fermé par `Html::closeForm()` : jeton en 11, rien en 12. |
 
 Aucune différence ne remet en cause une décision de CLAUDE.md.
 
@@ -132,3 +135,28 @@ Appels :
 | `ext-mbstring` | exigée, `composer.json:27` | exigée, `composer.json:27` | Contrôle UTF-8, longueur en caractères, casse (`MB_CASE_UPPER_SIMPLE`). |
 
 La classe n'utilise aucune API du cœur de GLPI.
+
+## Page de configuration (étape 3)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| Script `front/` d'un plugin | `src/Glpi/Http/RequestRouterTrait.php:87-92` | idem | = ; servi depuis la racine du plugin (et non `public/`). |
+| Plugin non chargé → 404 | `src/Glpi/Kernel/Listener/RequestListener/LegacyRouterListener.php:96-103` | idem | = ; « chargé » n'implique pas « activé » → la page teste `Plugin::isPluginActive()` (11 `src/Plugin.php:2714`, 12 `:2710`). |
+| `Glpi\Exception\Http\NotFoundHttpException` | `src/Glpi/Exception/Http/NotFoundHttpException.php` | idem | = |
+| `Session::checkRight($module, $right)` → `AccessDeniedHttpException` | `src/Session.php:1293` | `src/Session.php:1340` | = |
+| Constantes `UPDATE` / `INFO` | `src/autoload/constants.php:67` | `src/autoload/constants.php:68` | = |
+| `Html::header($title, $url = '', $sector = 'none', $item = 'none', $option = '', bool $add_id = true)` | `src/Html.php:1615` | `src/Html.php:1201` | = ; appelé comme `front/plugin.php:48` (`'config', 'plugin'`). |
+| `Html::footer()` | `src/Html.php:1685` | `src/Html.php:1271` | = |
+| `Html::redirect($dest, $http_response_code = 302): never` | `src/Html.php:457` | `src/Html.php:378` | = |
+| `$CFG_GLPI['root_doc']` | `src/Config.php:1400` | `src/Config.php:1383` | = |
+| `htmlescape(mixed $str): string` | `src/autoload/misc-functions.php:100` | `src/autoload/misc-functions.php:103` | = |
+| `__s($str, $domain = 'glpi')` (traduit et échappe) | `src/autoload/i18n.php:89` | idem | = |
+| Messages après redirection affichés **sans échappement** | `templates/components/messages_after_redirect_toasts.html.twig:58` (`message\|raw`) | idem | = : toujours échapper (`__s()`, `htmlescape()`) le texte passé à `addMessageAfterRedirect()`. |
+| `$_POST` brut (plus d'échappement automatique) | `Sanitizer` limité au décodage des anciennes données | idem | Valider le type (`is_string`) des valeurs postées. |
+| `Config::prepareInputForUpdate()` : entrée avec `context` renvoyée telle quelle | `src/Config.php:173-183` | `src/Config.php:170-180` | = |
+| Autoloader actif pendant `plugin_<key>_install()` | `Plugin::install()` → `self::load($dir, true)` → `registerPluginAutoloader()` | idem | = : `hook.php` peut utiliser les classes de `src/`. |
+| Twig `__()`, `_x()` | `src/Glpi/Application/View/Extension/I18nExtension.php:55-57` | `…/I18nExtension.php:56-58` | = |
+| Macro `textareaField` (et `textarea` de `basic_inputs_macros`) | `fields_macros.html.twig:220` | `:224` | Identiques (`diff`) ; valeur échappée (`{{ value }}` sans éditeur riche). |
+| Macro `checkboxField` (champ caché `0` + case `1`) | `fields_macros.html.twig:136`, `basic_inputs_macros.html.twig:513` | idem | Identiques (`diff`). |
+| Option `add_field_html` (affichée avec `\|raw`) | macro `field` / `horizontalField` | idem | = : construite dans le template par `{% set %}…{% endset %}`, donc échappée. |
+| Pas d'option `helper` sur les champs | — | — | Aide affichée via `add_field_html`. |

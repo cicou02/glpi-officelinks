@@ -6,8 +6,8 @@ native : protocoles Office URI (`ms-word:`, `ms-excel:`…) pour les fichiers
 Office, copie du chemin pour les autres types. Aucun fichier n'est stocké dans
 GLPI.
 
-> **État : en développement (étape 1, squelette).** Le plugin s'installe et
-> s'active, mais n'ajoute encore aucune fonctionnalité visible.
+> **État : en développement (étape 3).** Seule la page de configuration est
+> disponible ; le champ de la fiche Document arrive à l'étape suivante.
 
 ## Prérequis
 
@@ -34,6 +34,21 @@ php bin/console plugin:install --username=glpi officelinks
 ```bash
 php bin/console plugin:activate officelinks
 ```
+
+## Configuration
+
+*Configuration > Plugins > OfficeLinks* (icône « Configurer »), avec le droit
+« Configuration » en mise à jour. Une entrée par ligne :
+
+| Champ | Format | Exemple |
+|---|---|---|
+| Racines autorisées | `\\hôte\partage[\dossier]` | `\\internal.example.com\DFS\Informatique` |
+| Lettres de lecteur | `X: = \\hôte\partage[\dossier]` | `I: = \\internal.example.com\DFS\Informatique` |
+| Alias d'hôtes | `\\serveur\partage = \\hôte\espace-de-noms[\dossier]` | `\\srv-files01\Informatique$ = \\internal.example.com\DFS\Informatique` |
+
+Tant qu'aucune racine n'est configurée, aucun chemin ne peut être enregistré.
+Les cibles des lecteurs et des alias doivent se trouver sous une racine
+autorisée.
 
 ## Développement
 
