@@ -264,9 +264,8 @@ Registre équivalent : clé `HKLM\SOFTWARE\Policies\Microsoft\Edge`, valeur
 
 ## Compatibilité
 
-Testé sur GLPI 11.0.8. Le code est écrit et vérifié pour GLPI 11.0.x et
-12.0.x (références dans [docs/compat.md](docs/compat.md)) ; la recette
-fonctionnelle sur GLPI 12 reste à faire.
+Testé sur GLPI 11.0.8 et 12.0.2. Le même code est vérifié dans les sources
+de GLPI 11.0.x et 12.0.x (références dans [docs/compat.md](docs/compat.md)).
 
 ## Développement
 

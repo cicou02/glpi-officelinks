@@ -249,9 +249,9 @@ Registry equivalent: key `HKLM\SOFTWARE\Policies\Microsoft\Edge`, value
 
 ## Compatibility
 
-Tested on GLPI 11.0.8. The code is written and checked for GLPI 11.0.x and
-12.0.x (references in [docs/compat.md](docs/compat.md), in French); functional
-testing on GLPI 12 is still to be done.
+Tested on GLPI 11.0.8 and 12.0.2. The same code is checked against the
+GLPI 11.0.x and 12.0.x sources (references in [docs/compat.md](docs/compat.md),
+in French).
 
 ## Development
 

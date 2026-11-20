@@ -4,6 +4,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Non publié]
 
+### Modifié
+
+- Recette fonctionnelle validée sur GLPI 12.0.2 (README, `docs/compat.md`).
+
 ## [1.0.0] - 2026-11-20
 
 Première version publiée.
