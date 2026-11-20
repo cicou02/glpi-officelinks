@@ -7,6 +7,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ### Modifié
 
 - Recette fonctionnelle validée sur GLPI 12.0.2 (README, `docs/compat.md`).
+- README : statut du projet (conçu pour un usage interne, testé dans un seul
+  environnement, fourni sans garantie) et licence GPL-3.0-or-later expliquée.
+- `SECURITY.md` : signalement privé des vulnérabilités.
 
 ## [1.0.0] - 2026-11-20
 

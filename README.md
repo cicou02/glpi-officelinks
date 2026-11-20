@@ -15,6 +15,16 @@ displayed, the plugin generates native opening links:
 No file is stored in GLPI: the plugin indexes documents, speeds up searches and
 centralises access points.
 
+> **Project status.** OfficeLinks was built for the internal needs of one
+> organisation (Windows workstations, Microsoft Edge, Microsoft 365, a DFS
+> namespace) and is shared in the hope that it is useful to others. It has
+> been tested in that environment only, on GLPI 11.0.8 and 12.0.2. Another
+> setup (other browser, Office version, file server, reverse proxy or GLPI
+> configuration) may behave differently or reveal bugs. It is provided as is,
+> without warranty (see [License](#license)). Bug reports and pull requests
+> are welcome in the [issues](https://github.com/cicou02/glpi-officelinks/issues);
+> for a security problem, see [SECURITY.md](SECURITY.md).
+
 Contents: [Requirements](#requirements) · [Installation](#installation) ·
 [Upgrade](#upgrade) · [Configuration](#configuration) · [Usage](#usage) ·
 [Workstation deployment](#workstation-deployment-group-policy) ·
@@ -314,4 +324,16 @@ reference implementation.
 
 ## License
 
-GPL-3.0-or-later — see [LICENSE](LICENSE).
+OfficeLinks is free software, released under the
+[GNU General Public License v3.0 or later](LICENSE) (GPL-3.0-or-later), the
+licence family of GLPI itself. In short:
+
+- you may use it for any purpose, free of charge, including in a company or
+  to provide paid services;
+- you may study, modify and redistribute it;
+- if you distribute it, modified or not, you must do so under the same
+  licence, with its source code; using a modified version internally, without
+  distributing it, creates no obligation;
+- it comes without any warranty.
+
+This summary is not legal advice: the [LICENSE](LICENSE) file is authoritative.
