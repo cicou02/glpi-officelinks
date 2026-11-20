@@ -258,3 +258,17 @@ Sans `'itemtype'`, l'affichage de la colonne lève `TypeError: DbUtils::getClass
 | `Document::$rightname` | `public static $rightname = 'document'` (`:77`) | `public static string $rightname` (`:92`) | = (lecture seule de la valeur). |
 | `Glpi\DBAL\QuerySubQuery(array $crit, $alias = null)` | `src/Glpi/DBAL/QuerySubQuery.php:55` | `:54` | = ; `['NOT' => ['documents_id' => new QuerySubQuery(...)]]` → `NOT (documents_id IN (SELECT ...))` (`src/DBmysqlIterator.php:574`, `:625` ; 12 : `:607`, `:658`). Nettoyage des chemins orphelins à l'installation. |
 | `$DB->delete($table, $where, array $joins = [])` | `src/DBmysql.php:1603` | `:1573` | = |
+
+## GLPI 12.0.2 (instance de test, vérifié le 2026-11-20)
+
+Sources du tag `12.0.2` clonées dans `.glpi-src/12.0.2` et comparées à 12.0.1 sur les fichiers que le plugin utilise. Inchangés : `Glpi/Plugin/Hooks.php`, `Config.php`, `Html.php`, `Log.php`, `DBConnection.php`, `Glpi/DBAL/QuerySubQuery.php`, `Glpi/Cache/CacheManager.php`, `Glpi/Kernel/Kernel.php`, `TemplateRenderer.php`, `InitializeTwigEnvironment.php`, `RichText.php`, `misc-functions.php`, `i18n.php`, `API.php`, macros Twig `fields_macros` et `basic_inputs_macros`.
+
+| Fichier modifié | Changement | Effet sur le plugin |
+|---|---|---|
+| `src/CommonDBTM.php` | `can()`/`check()` : suppression de l'exception « élément privé » ; restriction d'entité de `User` | Aucun : boucle de comparaison de `update()`, `updateInDB()` et ordre des hooks inchangés. |
+| `src/Document.php` | `filterFields()` retire toujours `filename` et `mime` | Aucun : `_officelinks_path` est conservé. |
+| `src/Plugin.php` | Réutilisation des lignes de `glpi_plugins` ; `Central::clearDatabaseSchemaChecksCache()` à l'installation | Aucun ; la table du plugin respecte les contrôles de schéma (InnoDB, utf8mb4, `TIMESTAMP`, clés non signées). |
+| `CheckCsrfListener.php` → `Glpi\Http\CsrfChecker` | Logique déplacée, mêmes règles `Sec-Fetch-Site` / `Origin` | Aucun (D12). |
+| `src/Session.php` | Cache du nombre d'entités, contrôle IDOR plus strict | Aucun : le plugin n'utilise ni jeton IDOR ni `canViewAllEntities()`. |
+| `src/DBmysql.php`, `DBmysqlIterator.php` | `getStatementResult()`, sous-requête des tables GLPI | Aucun : `request()`, `insert()`, `updateOrInsert()`, `delete()` inchangés. |
+| `SQLProvider.php` | `makeTextCriteria()` : paramètre optionnel `$match_empty_value` | Aucun : le plugin ne l'appelle pas directement. |

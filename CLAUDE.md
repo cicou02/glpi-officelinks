@@ -49,7 +49,7 @@ locales/             domaine gettext `officelinks`, source en anglais, traductio
 tools/               outils de développement (traductions : php tools/locales.php)
 tests/               PHPUnit (normalisation, validation, encodage)
 docs/compat.md
-README.md (anglais) README.fr.md CHANGELOG.md LICENSE (GPL-3.0-or-later)
+README.md (anglais) README.fr.md CHANGELOG.md LICENSE (GPL-3.0-or-later) SECURITY.md
 .github/workflows/   tests.yml (php -l, PHPUnit, Node), release.yml (archive ; publication sur tag vX.Y.Z dans un job séparé)
 .github/dependabot.yml  mises à jour des actions (épinglées par SHA)
 ```

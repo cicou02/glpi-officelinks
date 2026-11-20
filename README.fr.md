@@ -15,6 +15,17 @@ qui contient le chemin UNC d'un fichier sur le partage DFS de l'entreprise.
 Aucun fichier n'est stocké dans GLPI : le plugin indexe les documents,
 accélère les recherches et centralise les points d'accès.
 
+> **Statut du projet.** OfficeLinks a été conçu pour les besoins internes
+> d'une organisation (postes Windows, Microsoft Edge, Microsoft 365, espace
+> de noms DFS) et il est partagé en espérant qu'il serve à d'autres. Il n'a
+> été testé que dans cet environnement, sur GLPI 11.0.8 et 12.0.2. Une autre
+> configuration (autre navigateur, version d'Office, serveur de fichiers,
+> proxy inverse ou paramétrage de GLPI) peut se comporter différemment ou
+> révéler des bugs. Il est fourni tel quel, sans garantie (voir
+> [Licence](#licence)). Les signalements de bugs et les pull requests sont
+> les bienvenus dans les [issues](https://github.com/cicou02/glpi-officelinks/issues) ;
+> pour un problème de sécurité, voir [SECURITY.md](SECURITY.md).
+
 Sommaire : [Prérequis](#prérequis) · [Installation](#installation) ·
 [Mise à jour](#mise-à-jour) · [Configuration](#configuration) ·
 [Utilisation](#utilisation) · [Déploiement sur les postes](#déploiement-sur-les-postes-gpo) ·
@@ -264,9 +275,8 @@ Registre équivalent : clé `HKLM\SOFTWARE\Policies\Microsoft\Edge`, valeur
 
 ## Compatibilité
 
-Testé sur GLPI 11.0.8. Le code est écrit et vérifié pour GLPI 11.0.x et
-12.0.x (références dans [docs/compat.md](docs/compat.md)) ; la recette
-fonctionnelle sur GLPI 12 reste à faire.
+Testé sur GLPI 11.0.8 et 12.0.2. Le même code est vérifié dans les sources
+de GLPI 11.0.x et 12.0.x (références dans [docs/compat.md](docs/compat.md)).
 
 ## Développement
 
@@ -329,4 +339,16 @@ l'aperçu JavaScript aux résultats de `PathNormalizer`, qui fait foi.
 
 ## Licence
 
-GPL-3.0-or-later — voir [LICENSE](LICENSE).
+OfficeLinks est un logiciel libre, distribué sous
+[licence publique générale GNU v3.0 ou ultérieure](LICENSE)
+(GPL-3.0-or-later), la même famille de licence que GLPI. En résumé :
+
+- vous pouvez l'utiliser pour tout usage, gratuitement, y compris en
+  entreprise ou pour fournir des prestations payantes ;
+- vous pouvez l'étudier, le modifier et le redistribuer ;
+- si vous le distribuez, modifié ou non, ce doit être sous la même licence,
+  avec son code source ; utiliser une version modifiée en interne, sans la
+  distribuer, n'impose aucune obligation ;
+- il est fourni sans aucune garantie.
+
+Ce résumé n'est pas un avis juridique : le fichier [LICENSE](LICENSE) fait foi.
