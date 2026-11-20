@@ -1,0 +1,68 @@
+# OfficeLinks — tests unitaires.
+#
+# Lancé sur chaque pull request et à chaque push sur main (sauf si seuls des
+# fichiers .github/ changent : main ne contient alors pas encore le code).
+# PHP 8.2 (minimum de GLPI 11) à 8.4 ; Node pour les tests du JavaScript.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Installation de Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      - name: Dépendances de développement
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Syntaxe PHP (php -l)
+        run: |
+          find . -name '*.php' -not -path './vendor/*' -not -path './.glpi-src/*' -print0 \
+            | xargs -0 -n1 php -l > /dev/null
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
+      - name: Tests JavaScript
+        run: node --test tests/js/officelinks.test.js
