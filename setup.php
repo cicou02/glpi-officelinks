@@ -11,6 +11,7 @@
  */
 
 use Glpi\Plugin\Hooks;
+use GlpiPlugin\Officelinks\DocumentHooks;
 
 // Version du plugin.
 define('PLUGIN_OFFICELINKS_VERSION', '0.1.0');
@@ -38,6 +39,17 @@ function plugin_init_officelinks(): void
     // Bouton « Configurer » dans Configuration > Plugins. Le droit
     // « config » en mise à jour est vérifié par la page elle-même.
     $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['officelinks'] = 'front/config.form.php';
+
+    // Fiche Document : champ « Chemin réseau ». post_item_form est un appel
+    // standard (non indexé par type) : DocumentHooks::showField() filtre lui-même.
+    $PLUGIN_HOOKS[Hooks::POST_ITEM_FORM]['officelinks'] = [DocumentHooks::class, 'showField'];
+
+    // Validation, persistance et purge, uniquement pour Document.
+    $PLUGIN_HOOKS[Hooks::PRE_ITEM_ADD]['officelinks']    = [Document::class => [DocumentHooks::class, 'preItemAdd']];
+    $PLUGIN_HOOKS[Hooks::PRE_ITEM_UPDATE]['officelinks'] = [Document::class => [DocumentHooks::class, 'preItemUpdate']];
+    $PLUGIN_HOOKS[Hooks::ITEM_ADD]['officelinks']        = [Document::class => [DocumentHooks::class, 'itemAdd']];
+    $PLUGIN_HOOKS[Hooks::ITEM_UPDATE]['officelinks']     = [Document::class => [DocumentHooks::class, 'itemUpdate']];
+    $PLUGIN_HOOKS[Hooks::ITEM_PURGE]['officelinks']      = [Document::class => [DocumentHooks::class, 'itemPurge']];
 }
 
 /**

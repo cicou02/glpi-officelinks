@@ -160,3 +160,20 @@ La classe n'utilise aucune API du cœur de GLPI.
 | Macro `checkboxField` (champ caché `0` + case `1`) | `fields_macros.html.twig:136`, `basic_inputs_macros.html.twig:513` | idem | Identiques (`diff`). |
 | Option `add_field_html` (affichée avec `\|raw`) | macro `field` / `horizontalField` | idem | = : construite dans le template par `{% set %}…{% endset %}`, donc échappée. |
 | Pas d'option `helper` sur les champs | — | — | Aide affichée via `add_field_html`. |
+
+## Fiche Document (étape 4)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| `CommonDBTM::add(array $input, $options = [], $history = true)` | `src/CommonDBTM.php:1288` | `src/CommonDBTM.php:1298` | Identique (`diff`, hormis `isSlave` → `isReplica`). `pre_item_add` est appelé **avant** `prepareInputForAdd()` ; `$this->input = false` arrête l'ajout ; `item_add` est toujours appelé après `addToDB()`. Les clés commençant par `_` ne sont jamais écrites en base. |
+| `CommonDBTM::update(array $input, $history = true, $options = [])` | `src/CommonDBTM.php:1642` | `src/CommonDBTM.php:1652` | `pre_item_update` avant `prepareInputForUpdate()` ; **`item_update` n'est appelé que si une colonne change** (`if (count($this->updates))`). 12 ajoute `post_prepareupdate`. |
+| `CommonDBTM::delete()` → `item_purge` | `src/CommonDBTM.php:2118` (hook `:2189`) | `src/CommonDBTM.php:2136` (hook `:2207`) | = |
+| `CommonDBTM::$history_blacklist` | `public $history_blacklist = []` (`:112`) | `public array $history_blacklist = []` (`:116`) | Propriété publique, vide pour Document : un `date_mod` passé dans `input` serait historisé, d'où son ajout temporaire à la liste. |
+| `Log::constructHistory()` | ignore `getNonLoggedFields()` (vide par défaut) | idem | = |
+| `Document::prepareInputForAdd()` / `prepareInputForUpdate()` → `filterFields()` | `src/Document.php:223`, `:335`, `:1818` | `:239`, `:355`, `:1915` | = ; ne retire que `filename` (si présent dans `$_REQUEST`), `filepath`, `sha1sum` : `_officelinks_path` est conservé. Un document peut être créé sans fichier. |
+| `Document::showForm()` → `params.canedit = $this->canUpdateItem()` | `src/Document.php:366-378` | `src/Document.php:386-398` | = |
+| `post_item_form` dans la timeline des tickets | objet `Document_Item` (`src/CommonITILObject.php:7492`) | idem (`:7453`) | `Document_Item` n'hérite pas de `Document` : le test `instanceof Document` limite le champ à la fiche Document. |
+| `CommonDBTM::canUpdateItem(): bool` / `CommonGLPI::isNewItem()` | `src/CommonDBTM.php:2487` / `src/CommonGLPI.php:841` | `:2510` / `:909` | = ; droits de classe via `Document::canUpdate()` / `canCreate()`. |
+| Macro `textField` / `input` (`readonly`, `maxlength`, `additional_attributes`) | `fields_macros.html.twig:96` / `basic_inputs_macros.html.twig` | `:100` / idem | `textField` identique ; `input` ne diffère que par les boutons des mots de passe (non utilisés). |
+| `$DB->insert()`, `updateOrInsert()`, `delete()`, `request()` | voir « Base de données » | idem | = |
+| `Plugin::uninstall()` charge le plugin (`self::load($dir, true)`) | `src/Plugin.php:1142` | `src/Plugin.php:1141` | = : `hook.php` peut utiliser `DocumentPath::TABLE` à la désinstallation. |

@@ -7,11 +7,9 @@
  * @link    https://github.com/cicou02/glpi-officelinks
  */
 
+use GlpiPlugin\Officelinks\DocumentPath;
 use GlpiPlugin\Officelinks\PluginConfig;
 use GlpiPlugin\Officelinks\Settings;
-
-/** Table des chemins UNC associés aux documents. */
-const PLUGIN_OFFICELINKS_TABLE = 'glpi_plugin_officelinks_documents';
 
 /**
  * Installation (et réinstallation) du plugin.
@@ -28,14 +26,14 @@ function plugin_officelinks_install(array $args = []): bool
     /** @var DBmysql $DB */
     global $DB;
 
-    if (!$DB->tableExists(PLUGIN_OFFICELINKS_TABLE)) {
+    if (!$DB->tableExists(DocumentPath::TABLE)) {
         $charset   = DBConnection::getDefaultCharset();
         $collation = DBConnection::getDefaultCollation();
         $sign      = DBConnection::getDefaultPrimaryKeySignOption();
 
         // SQL brut autorisé uniquement pour CREATE/DROP TABLE.
         $DB->doQuery(
-            "CREATE TABLE `" . PLUGIN_OFFICELINKS_TABLE . "` (
+            "CREATE TABLE `" . DocumentPath::TABLE . "` (
                 `id` int {$sign} NOT NULL AUTO_INCREMENT,
                 `documents_id` int {$sign} NOT NULL DEFAULT '0',
                 `unc_path` varchar(1024) NOT NULL DEFAULT '',
@@ -71,7 +69,7 @@ function plugin_officelinks_uninstall(): bool
     /** @var DBmysql $DB */
     global $DB;
 
-    $DB->dropTable(PLUGIN_OFFICELINKS_TABLE, true);
+    $DB->dropTable(DocumentPath::TABLE, true);
 
     // Supprime toutes les clés du contexte, y compris d'éventuelles
     // clés ajoutées par une version ultérieure.

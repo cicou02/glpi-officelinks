@@ -16,3 +16,6 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   « config » en mise à jour) : racines autorisées, lettres de lecteur,
   alias d'hôtes, option des liens `file://`. Rien n'est enregistré tant
   qu'une ligne est invalide.
+- Champ « Chemin réseau » sur la fiche Document (création et modification) :
+  normalisation et validation côté serveur, enregistrement du chemin UNC
+  canonique, suppression si le champ est vidé ou si le document est purgé.

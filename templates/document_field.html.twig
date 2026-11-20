@@ -1,0 +1,32 @@
+{#
+ # OfficeLinks — champ « Chemin réseau » de la fiche Document.
+ # Affiché par le hook post_item_form, à l'intérieur du formulaire natif :
+ # la valeur est envoyée avec le reste de la fiche (aucun jeton à ajouter).
+ # Échappement Twig par défaut : le chemin n'est jamais affiché avec |raw.
+ #}
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+<div class="card-body d-flex flex-wrap officelinks-document">
+    <div class="col-12 flex-column">
+        <div class="row flex-row">
+            {% set path_help %}
+                {% if canedit %}
+                    <div class="form-text">
+                        {{ __('UNC path of the file on the network share. Paste it from File Explorer (Ctrl+Shift+C). Leave empty to remove the link.', 'officelinks') }}
+                    </div>
+                {% endif %}
+            {% endset %}
+            {{ fields.textField(field, path, __('Network path', 'officelinks'), {
+                'full_width': true,
+                'readonly': not canedit,
+                'maxlength': max_length * 4,
+                'add_field_html': path_help,
+                'additional_attributes': {
+                    'placeholder': '\\\\server\\share\\folder\\file.docx',
+                    'spellcheck': 'false',
+                    'autocomplete': 'off',
+                },
+            }) }}
+        </div>
+    </div>
+</div>
