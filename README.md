@@ -36,6 +36,20 @@ php bin/console plugin:install --username=glpi officelinks
 php bin/console plugin:activate officelinks
 ```
 
+## Mise à jour du plugin
+
+Après chaque mise à jour des fichiers du plugin (`git pull`, copie d'une
+nouvelle version), vider le cache de GLPI, puis recharger la page avec
+Ctrl+F5 :
+
+```bash
+php bin/console cache:clear
+```
+
+En environnement de production (cas de l'image Docker officielle), GLPI ne
+recompile pas les templates Twig modifiés : sans cette commande, l'ancienne
+version des écrans du plugin reste affichée.
+
 ## Configuration
 
 *Configuration > Plugins > OfficeLinks* (icône « Configurer »), avec le droit

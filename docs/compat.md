@@ -188,3 +188,10 @@ La classe n'utilise aucune API du cœur de GLPI.
 | En-tête `Content-Security-Policy` | absent de `src/` | absent de `src/` | Pas de contrainte sur les scripts ; le plugin n'utilise de toute façon aucun script en ligne. |
 | Icônes Tabler (`@tabler/icons-webfont`) | `^3.34.1` (`package.json:25`) | `^3.35.0` (`package.json:27`) | `ti-file-type-doc`, `ti-file-type-xls`, `ti-file-type-ppt`, `ti-sitemap`, `ti-eye`, `ti-copy`, `ti-folder-open` présentes dans les deux. |
 | Filtres Twig `json_encode`, `format` | Twig `^3.27` (`composer.json:106`) | Twig `^3.27` (`composer.json:111`) | Filtres natifs de Twig. |
+
+## Cache des templates (constaté au test de l'étape 5)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| `Environment::shouldExpectResourcesToChange()` | `src/Glpi/Application/Environment.php:207` | `src/Glpi/Application/Environment.php:197` | `false` en production/staging si GLPI n'est pas une copie git : Twig `auto_reload` désactivé (11 `src/Glpi/Application/View/TemplateRenderer.php:88`, 12 `src/Glpi/Kernel/Listener/PostBootListener/InitializeTwigEnvironment.php:84`). Un template de plugin modifié n'est pas recompilé → `php bin/console cache:clear` après chaque mise à jour. |
+| `Plugin::getPluginFilesVersion()` (paramètre `?v=` des JS/CSS) | `src/Plugin.php:1965` | idem | = ; renvoie la version du plugin : l'augmenter à chaque publication pour invalider le cache navigateur. |
