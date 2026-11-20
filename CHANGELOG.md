@@ -4,6 +4,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Non publié]
 
+## [1.0.0] - 2026-11-20
+
+Première version publiée.
+
 ### Ajouté
 
 - Squelette du plugin : `setup.php`, `hook.php` (table
