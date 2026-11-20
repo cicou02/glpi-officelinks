@@ -6,9 +6,9 @@ native : protocoles Office URI (`ms-word:`, `ms-excel:`…) pour les fichiers
 Office, copie du chemin pour les autres types. Aucun fichier n'est stocké dans
 GLPI.
 
-> **État : en développement (étape 5).** Configuration, champ « Chemin
-> réseau » et boutons d'ouverture disponibles. Restent : option de recherche,
-> historique, traductions et documentation de déploiement sur les postes.
+> **État : en développement (étape 6).** Configuration, champ « Chemin
+> réseau », boutons d'ouverture, recherche et historique disponibles. Restent :
+> traductions et documentation de déploiement sur les postes.
 
 ## Prérequis
 

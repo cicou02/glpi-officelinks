@@ -21,6 +21,16 @@ final class DocumentPath
     public const TABLE = 'glpi_plugin_officelinks_documents';
 
     /**
+     * Identifiant de l'option de recherche « Chemin réseau » (Document).
+     *
+     * GLPI ne tient aucun registre des identifiants des plugins : valeur
+     * choisie hors des identifiants du cœur (littéraux <= 4000, statuts
+     * 4000 + n, champs personnalisés 45000 + n). Ne JAMAIS la changer : les
+     * lignes d'historique (glpi_logs.id_search_option) y font référence.
+     */
+    public const SEARCH_OPTION_ID = 21500;
+
+    /**
      * Chemin UNC canonique du document, ou null s'il n'en a pas.
      */
     public static function get(int $documents_id): ?string

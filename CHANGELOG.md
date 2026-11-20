@@ -27,3 +27,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - JavaScript : aperçu du chemin normalisé pendant la saisie, préremplissage
   du nom du document, copie avec repli pour GLPI servi en http. Tests Node
   comparant l'aperçu aux résultats de PathNormalizer.
+- Option de recherche « Chemin réseau » (identifiant 21500) dans
+  Gestion > Documents : colonne affichable et critère de recherche.
+- Historique du document : une ligne « Chemin réseau : ancien → nouveau » à
+  chaque modification ou suppression du chemin.
+- Suppression du bouton « Lecture seule » (`ofv` ignoré par Office pour les
+  chemins `file://`).

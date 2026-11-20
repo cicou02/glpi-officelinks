@@ -60,6 +60,40 @@ function plugin_officelinks_install(array $args = []): bool
 }
 
 /**
+ * Options de recherche ajoutées par le plugin.
+ *
+ * « Chemin réseau » sur Document : affichable comme colonne et utilisable
+ * comme critère dans Gestion > Documents. Jointure « child » :
+ * glpi_documents.id = glpi_plugin_officelinks_documents.documents_id.
+ * Sert aussi de libellé aux lignes d'historique des changements de chemin.
+ *
+ * @param string $itemtype
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function plugin_officelinks_getAddSearchOptionsNew($itemtype): array
+{
+    if ($itemtype !== Document::class) {
+        return [];
+    }
+
+    return [
+        [
+            'id'            => DocumentPath::SEARCH_OPTION_ID,
+            'table'         => DocumentPath::TABLE,
+            'field'         => 'unc_path',
+            'name'          => __('Network path', 'officelinks'),
+            'datatype'      => 'string',
+            // Pas de modification en masse : elle contournerait la validation.
+            'massiveaction' => false,
+            'joinparams'    => [
+                'jointype' => 'child',
+            ],
+        ],
+    ];
+}
+
+/**
  * Désinstallation : suppression de la table et de toute la configuration.
  *
  * @return bool

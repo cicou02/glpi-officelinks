@@ -11,6 +11,7 @@ namespace GlpiPlugin\Officelinks;
 
 use Document;
 use Glpi\Application\View\TemplateRenderer;
+use Log;
 use Session;
 
 /**
@@ -214,7 +215,7 @@ final class DocumentHooks
             return;
         }
 
-        self::persist($id, $new);
+        self::persist($item, $new);
         unset($item->input[self::FIELD]);
     }
 
@@ -234,10 +235,9 @@ final class DocumentHooks
      */
     public static function itemUpdate(Document $item): void
     {
-        $id   = (int) $item->getID();
         $path = $item->input[self::FIELD] ?? null;
         if (is_string($path)) {
-            self::persist($id, $path);
+            self::persist($item, $path);
         }
     }
 
@@ -284,12 +284,28 @@ final class DocumentHooks
         }
     }
 
-    private static function persist(int $id, string $path): void
+    /**
+     * Enregistre (ou supprime si vide) le chemin d'un document existant et
+     * ajoute une ligne à son historique : « Chemin réseau : ancien → nouveau ».
+     */
+    private static function persist(Document $item, string $path): void
     {
+        $id  = (int) $item->getID();
+        $old = DocumentPath::get($id) ?? '';
+        if ($path === $old) {
+            return;
+        }
+
         if ($path === '') {
             DocumentPath::delete($id);
         } else {
             DocumentPath::save($id, $path);
+        }
+
+        // Même condition que CommonDBTM::update() pour historiser.
+        if ($item->dohistory && empty($item->input['_no_history'])) {
+            // Log::history() tronque les valeurs à 255 caractères.
+            Log::history($id, Document::class, [DocumentPath::SEARCH_OPTION_ID, $old, $path], '', 0);
         }
     }
 

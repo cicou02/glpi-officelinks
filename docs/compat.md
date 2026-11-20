@@ -202,3 +202,13 @@ Source : <https://learn.microsoft.com/en-us/office/client-developer/office-uri-s
 
 - Section 1.3 : « Currently only URIs based on the http or https scheme are supported. » Avec `file://`, `ofe` fonctionne sur le parc mais **`ofv` (lecture seule) est ignoré** : bouton « Lecture seule » retiré (décision du 2026-11-20).
 - Section 1.7 : « the maximum path length is 256 characters for all apps except Excel, where the limit is 216. » Un chemin plus long est accepté par le plugin (limite 1024) mais peut ne pas s'ouvrir dans Office.
+
+## Recherche et historique (étape 6)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| Jointure `child` (`joinparams.jointype`) | `src/Glpi/Search/Provider/SQLProvider.php:3020-3036` | `…/SQLProvider.php:3122-3160` | `LEFT JOIN … ON glpi_documents.id = <table>.documents_id` (`getForeignKeyFieldForTable()`). La variante en sous-requête `COUNT(*)` de 12 n'est utilisée que si l'option déclare `use_join_subquery` (non utilisé). |
+| Identifiants d'options du cœur | littéraux ≤ 4000 ; `State` : 4000 + n (`src/State.php:899`) ; champs personnalisés : 45000 + n (`src/Glpi/Asset/CustomFieldDefinition.php:339`) | idem (`:898`, `:341`) | Aucun registre officiel pour les plugins (documentation développeur : « we must avoid conflict »). Plugin : **21500**, constante `DocumentPath::SEARCH_OPTION_ID`, à ne jamais changer. |
+| `Log::history($items_id, $itemtype, $changes, $itemtype_link = '', $linked_action = 0)` | `src/Log.php:231` | `src/Log.php:232` | = (hormis `affectedRows()` → `getAffectedRows()`) ; `$changes = [id_search_option, ancien, nouveau]` ; valeurs tronquées à 255 caractères. |
+| Affichage de l'historique (`Log::getHistoryData()`, `linked_action = 0`) | `src/Log.php:400` | `src/Log.php:401` | = : libellé = `name` de l'option de recherche, texte « Changer <ancien> en <nouveau> » échappé. |
+| `CommonDBTM::$dohistory` | `public $dohistory` (`:104`), `true` pour Document (`src/Document.php:73`) | `public bool $dohistory` (`:108`), `true` (`src/Document.php:88`) | Historisation seulement si `dohistory` et sans `_no_history`, comme `CommonDBTM::update()`. |
