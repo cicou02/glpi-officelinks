@@ -236,3 +236,14 @@ Sans `'itemtype'`, l'affichage de la colonne lève `TypeError: DbUtils::getClass
 
 - `AutoLaunchProtocolsFromOrigins` (Edge ≥ 85) : `HKLM\SOFTWARE\Policies\Microsoft\Edge`, `REG_SZ`, JSON `[{"protocol": "...", "allowed_origins": [...]}]` ; protocole en minuscules sans séparateur ; origines sans chemin ni requête. <https://learn.microsoft.com/en-us/deployedge/microsoft-edge-browser-policies/autolaunchprotocolsfromorigins>
 - `IntranetFileLinksEnabled` (Edge ≥ 95) : `REG_DWORD` ; liens `file://` vers des fichiers de la zone Intranet, depuis des pages **HTTPS** de la zone Intranet ; lien vers un fichier → Explorateur sur le dossier parent, fichier sélectionné. <https://learn.microsoft.com/en-us/deployedge/microsoft-edge-browser-policies/intranetfilelinksenabled>
+
+## Mise à jour du plugin
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| Version de `setup.php` ≠ version en base → état `NOTUPDATED`, plugin désactivé, bouton « Mettre à jour » | `src/Plugin.php:905-923` | `src/Plugin.php:904-922` | = ; le bouton appelle `Plugin::install()` donc `plugin_officelinks_install()`. |
+| Cache des templates vidé par GLPI à l'installation d'un plugin | **non** (`resetHookableCacheEntries()`, `src/Plugin.php:3337`, ne touche pas aux templates) | oui : `resetHookableCacheEntries()` appelle `CacheManager::resetCompiledTemplates()` (`src/Plugin.php:3288-3308`) | D'où `Maintenance::resetTemplateCache()` dans `plugin_officelinks_install()`. |
+| `CacheManager::resetCompiledTemplates(): bool` | **absente** | `src/Glpi/Cache/CacheManager.php:337` | Appelée si elle existe (`method_exists`). |
+| `CacheManager::resetAllCaches(): bool` | `src/Glpi/Cache/CacheManager.php:315` (supprime `templates/*/*.php`) | `:313` | Non utilisée (vide aussi le cache Symfony) ; en 11, le plugin reproduit seulement la suppression des templates. |
+| `Glpi\Kernel\Kernel::getCacheRootDir(): string` | `src/Glpi/Kernel/Kernel.php:91` | `:95` | Dossier des templates compilés : `getCacheRootDir() . '/templates'` (11 : `TemplateRenderer.php:92` ; 12 : `InitializeTwigEnvironment.php:94`). |
+| Liens « Page d'accueil / Aide / Lisez-moi » de la page des plugins | `src/Glpi/Marketplace/View.php:262-266` | idem | Fournis **uniquement** par l'API de la marketplace (`$apidata`) : impossibles pour un plugin non publié. Seuls `logo.png` (`:248`) et `homepage` de `plugin_version_*()` (vue liste, `src/Plugin.php:3010`) sont locaux. |

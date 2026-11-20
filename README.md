@@ -1,47 +1,55 @@
-# OfficeLinks — plugin GLPI
+# OfficeLinks — GLPI plugin
 
-OfficeLinks ajoute à la fiche **Document** de GLPI un champ « Chemin réseau »
-qui contient le chemin UNC d'un fichier sur le partage DFS de l'entreprise.
-À l'affichage, le plugin génère des liens d'ouverture native :
+🇫🇷 [Version française](README.fr.md)
 
-- **fichiers Office** (Word, Excel, PowerPoint, Visio) : bouton « Ouvrir dans
-  Word » (protocole `ms-word:` et équivalents), qui ouvre le fichier **en
-  édition, directement sur le DFS** ;
-- **tous les fichiers** : bouton « Copier le chemin » ;
-- **en option** : bouton « Afficher dans l'Explorateur ».
+OfficeLinks adds a "Network path" field to GLPI **Document** items. The field
+holds the UNC path of a file on the company DFS share. When a document is
+displayed, the plugin generates native opening links:
 
-Aucun fichier n'est stocké dans GLPI : le plugin indexe les documents,
-accélère les recherches et centralise les points d'accès.
+- **Office files** (Word, Excel, PowerPoint, Visio): an "Open in Word" button
+  (`ms-word:` protocol and equivalents) that opens the file **for editing,
+  directly on the DFS share**;
+- **all files**: a "Copy path" button;
+- **optional**: a "Show in File Explorer" button.
 
-Sommaire : [Prérequis](#prérequis) · [Installation](#installation) ·
-[Mise à jour](#mise-à-jour) · [Configuration](#configuration) ·
-[Utilisation](#utilisation) · [Déploiement sur les postes](#déploiement-sur-les-postes-gpo) ·
-[Limites connues](#limites-connues) · [Dépannage](#dépannage) ·
-[Développement](#développement)
+No file is stored in GLPI: the plugin indexes documents, speeds up searches and
+centralises access points.
 
-## Prérequis
+Contents: [Requirements](#requirements) · [Installation](#installation) ·
+[Upgrade](#upgrade) · [Configuration](#configuration) · [Usage](#usage) ·
+[Workstation deployment](#workstation-deployment-group-policy) ·
+[Known limitations](#known-limitations) · [Troubleshooting](#troubleshooting) ·
+[Development](#development)
 
-- GLPI 11.0.x ou 12.0.x (même code pour les deux versions)
-- PHP 8.2 ou plus, avec les extensions `intl` et `mbstring` (déjà exigées par GLPI)
-- Postes : Windows, Microsoft Edge et Microsoft 365 (ou Office 2013 et plus)
+## Requirements
+
+- GLPI 11.0.x or 12.0.x (same code for both versions)
+- PHP 8.2 or later, with the `intl` and `mbstring` extensions (already required by GLPI)
+- Workstations: Windows, Microsoft Edge and Microsoft 365 (or Office 2013 and later)
 
 ## Installation
 
-1. Placer le plugin dans le dossier `plugins/` de GLPI, **sous le nom
-   `officelinks`** (et non `glpi-officelinks`) :
+1. Put the plugin in the GLPI `plugins/` directory, **in a folder named
+   `officelinks`** (not `glpi-officelinks`):
 
-   ```bash
-   git clone https://github.com/cicou02/glpi-officelinks.git /var/www/glpi/plugins/officelinks
-   ```
+   - **from a release (recommended)**: download `officelinks-X.Y.Z.zip` from
+     the [Releases](https://github.com/cicou02/glpi-officelinks/releases) page
+     and extract it into `plugins/`; the archive already contains an
+     `officelinks/` folder with the required files only;
+   - **from Git**:
 
-   Le dossier `vendor/` n'est pas nécessaire en production : Composer ne sert
-   qu'aux tests.
+     ```bash
+     git clone https://github.com/cicou02/glpi-officelinks.git /var/www/glpi/plugins/officelinks
+     ```
 
-2. Donner le dossier à l'utilisateur du serveur web (par exemple
+     The `vendor/` folder is not needed in production: Composer is only used
+     for the tests.
+
+2. Give the folder to the web server user (for example
    `chown -R www-data: /var/www/glpi/plugins/officelinks`).
 
-3. Dans GLPI : *Configuration > Plugins*, **Installer** puis **Activer**
-   « OfficeLinks ». En ligne de commande, depuis la racine de GLPI :
+3. In GLPI: *Setup > Plugins*, **Install** then **Enable** "OfficeLinks". From
+   the command line, in the GLPI root directory:
 
    ```bash
    php bin/console plugin:install --username=glpi officelinks
@@ -51,128 +59,128 @@ Sommaire : [Prérequis](#prérequis) · [Installation](#installation) ·
    php bin/console plugin:activate officelinks
    ```
 
-4. Configurer au moins une racine autorisée (voir [Configuration](#configuration)) :
-   tant qu'aucune racine n'est configurée, aucun chemin ne peut être enregistré.
+4. Configure at least one allowed root (see [Configuration](#configuration)):
+   as long as no root is configured, no path can be saved.
 
-L'installation crée la table `glpi_plugin_officelinks_documents` et la
-configuration (contexte `plugin:officelinks`, vide par défaut). La
-désinstallation supprime les deux.
+Installation creates the `glpi_plugin_officelinks_documents` table and the
+configuration (`plugin:officelinks` context, empty by default). Uninstalling
+removes both.
 
-## Mise à jour
+## Upgrade
 
-Après chaque mise à jour des fichiers du plugin (`git pull`, nouvelle
-archive), **vider le cache de GLPI**, puis recharger la page avec Ctrl+F5 :
+1. Replace the content of `plugins/officelinks/` with the new version (release
+   archive or `git pull`). The configuration and the saved paths are kept:
+   they live in the database.
+2. *Setup > Plugins*: GLPI detects the new version number, disables the plugin
+   and shows an **Upgrade** button. Click it, then **Enable**.
+3. Reload the page with Ctrl+F5.
+
+The upgrade clears the GLPI template cache by itself: no `cache:clear` needed.
+The plugin configuration page tells you when a newer version is published on
+GitHub (checked by the administrator's browser, cached for 12 hours).
+
+**Files changed without a version change** (development, `git pull` of a
+branch): GLPI does not offer an upgrade and, in production, does not recompile
+templates; clear the cache manually:
 
 ```bash
 php bin/console cache:clear
 ```
 
-En production (cas de l'image Docker officielle), GLPI ne recompile pas les
-templates Twig modifiés : sans cette commande, l'ancienne version des écrans du
-plugin reste affichée. Aucune réinstallation n'est nécessaire.
-
 ## Configuration
 
-*Configuration > Plugins > OfficeLinks* (icône « Configurer »). La page exige
-le droit « Configuration » en modification. Une entrée par ligne :
+*Setup > Plugins > OfficeLinks* ("Configure" icon). The page requires the
+"Setup" right with update permission. One entry per line:
 
-| Champ | Format | Exemple |
+| Field | Format | Example |
 |---|---|---|
-| Racines autorisées | `\\hôte\partage[\dossier]` | `\\internal.example.com\DFS\Informatique` |
-| Lettres de lecteur | `X: = \\hôte\partage[\dossier]` | `I: = \\internal.example.com\DFS\Informatique` |
-| Alias d'hôtes | `\\serveur\partage = \\hôte\espace-de-noms[\dossier]` | `\\srv-files01\Informatique$ = \\internal.example.com\DFS\Informatique` |
-| Afficher le bouton « Afficher dans l'Explorateur » | case à cocher | désactivé par défaut |
+| Allowed roots | `\\host\share[\folder]` | `\\internal.example.com\DFS\IT` |
+| Drive letter mappings | `X: = \\host\share[\folder]` | `I: = \\internal.example.com\DFS\IT` |
+| Host aliases | `\\server\share = \\host\namespace[\folder]` | `\\srv-files01\IT$ = \\internal.example.com\DFS\IT` |
+| Show the "Show in File Explorer" button | checkbox | disabled by default |
 
-- **Racines autorisées** : seuls les fichiers situés sous l'une de ces racines
-  peuvent être liés. La comparaison ignore la casse et se fait dossier par
-  dossier (`\\hôte\DFS-test` n'est pas sous `\\hôte\DFS`). La racine est
-  réécrite avec la casse de la configuration.
-- **Lettres de lecteur** : un chemin saisi comme `I:\Info\a.docx` est traduit
-  en chemin UNC.
-- **Alias d'hôtes** : un chemin saisi avec le serveur cible
-  (`\\srv-files01\...`) est réécrit vers l'espace de noms DFS.
-- Les cibles des lecteurs et des alias doivent se trouver sous une racine
-  autorisée. Si une ligne est invalide, rien n'est enregistré et les erreurs
-  sont listées avec leur numéro de ligne.
+- **Allowed roots**: only files located under one of these roots can be
+  linked. Matching is case-insensitive and done folder by folder
+  (`\\host\DFS-test` is not under `\\host\DFS`). The root is rewritten with the
+  case used in the configuration.
+- **Drive letter mappings**: a path entered as `I:\Info\a.docx` is translated
+  into a UNC path.
+- **Host aliases**: a path entered with the target server
+  (`\\srv-files01\...`) is rewritten to the DFS namespace.
+- Drive and alias targets must be under an allowed root. If a line is
+  invalid, nothing is saved and errors are listed with their line number.
 
-### Sécurité
+### Security
 
-La liste des racines autorisées est la vraie protection du plugin. Un lien
-`ms-word:` vers un serveur arbitraire peut faire envoyer à ce serveur le hash
-NetNTLM de l'utilisateur qui clique. Le serveur GLPI valide donc chaque
-chemin, et revalide le chemin enregistré à chaque affichage : si une racine est
-retirée de la configuration, les documents concernés n'affichent plus de lien
-d'ouverture (la copie du chemin reste possible).
+The list of allowed roots is the actual protection of the plugin. An `ms-word:`
+link to an arbitrary server can make the clicking user's computer send its
+NetNTLM hash to that server. GLPI therefore validates every path on save, and
+validates the saved path again on every display: if a root is removed from the
+configuration, the related documents no longer show opening links (copying
+the path remains possible).
 
-## Utilisation
+## Usage
 
-Sur la fiche d'un document (*Gestion > Documents*), le champ **Chemin réseau**
-accepte :
+On a document (*Management > Documents*), the **Network path** field accepts:
 
-- un chemin UNC : `\\internal.example.com\DFS\Informatique\Info\Procédure.docx` ;
-- le résultat de « Copier en tant que chemin d'accès » de l'Explorateur
-  (Ctrl+Maj+C), guillemets compris ;
-- une lettre de lecteur configurée : `I:\Info\Procédure.docx` ;
-- une URI `file://internal.example.com/DFS/...`.
+- a UNC path: `\\internal.example.com\DFS\IT\Info\Procedure.docx`;
+- the output of File Explorer's "Copy as path" (Ctrl+Shift+C), quotes
+  included;
+- a configured drive letter: `I:\Info\Procedure.docx`;
+- a `file://internal.example.com/DFS/...` URI.
 
-Pendant la saisie, une ligne d'aperçu indique le chemin qui sera enregistré
-(ou la raison d'un refus). Si le nom du document est vide, il est rempli avec
-le nom du fichier sans extension. Seul le chemin UNC canonique est enregistré ;
-un champ vidé supprime le lien.
+While typing, a preview line shows the path that will be saved (or why it
+will be rejected). If the document name is empty, it is filled with the file
+name without extension. Only the canonical UNC path is saved; clearing the
+field removes the link.
 
-Le chemin est aussi :
+The path is also:
 
-- **recherchable** : colonne et critère « Chemin réseau » dans
-  *Gestion > Documents* ;
-- **historisé** : chaque changement ajoute une ligne dans l'onglet
-  *Historique* du document.
+- **searchable**: "Network path" column and criterion in
+  *Management > Documents*;
+- **tracked**: every change adds a line to the document's *Historical* tab.
 
-La saisie suit le droit de modification du document ; un utilisateur en
-lecture seule voit le chemin et les boutons.
+Editing follows the document update right; a read-only user sees the path and
+the buttons.
 
-## Déploiement sur les postes (GPO)
+The interface is available in English and French.
 
-Trois réglages, à déployer par stratégie de groupe. Les stratégies Edge
-nécessitent les modèles d'administration de Microsoft Edge (`MSEdge.admx`).
-Dans les exemples, remplacer `glpi.example.com` et `internal.example.com` par
-vos noms.
+## Workstation deployment (Group Policy)
 
-### 1. Zone Intranet local pour le DFS (recommandé)
+Three settings, to deploy with Group Policy. The Edge policies require the
+Microsoft Edge administrative templates (`MSEdge.admx`). In the examples,
+replace `glpi.example.com` and `internal.example.com` with your own names.
 
-Classe le partage DFS (et GLPI) en zone *Intranet local* : Office ouvre alors
-les fichiers du DFS sans les traiter comme provenant d'Internet, et c'est une
-condition du bouton « Afficher dans l'Explorateur ».
+### 1. Local intranet zone for the DFS share (recommended)
 
-*Configuration ordinateur > Stratégies > Modèles d'administration >
-Composants Windows > Internet Explorer > Panneau de configuration Internet >
-Page Sécurité* :
+Puts the DFS share (and GLPI) in the *Local intranet* zone: Office then opens
+DFS files without treating them as coming from the Internet, and it is a
+prerequisite of the "Show in File Explorer" button.
 
-- **Liste des attributions de sites aux zones** (*Site to Zone Assignment
-  List*), zone `1` (Intranet local) :
+*Computer Configuration > Policies > Administrative Templates > Windows
+Components > Internet Explorer > Internet Control Panel > Security Page*:
 
-  | Valeur | Zone |
+- **Site to Zone Assignment List**, zone `1` (Local intranet):
+
+  | Value | Zone |
   |---|---|
   | `file://internal.example.com` | `1` |
   | `https://glpi.example.com` | `1` |
 
-- ou, pour le partage seulement, **Sites intranet : inclure tous les chemins
-  réseau (UNC)** (*Intranet Sites: Include all network paths (UNCs)*) :
-  Activé.
+- or, for the share only, **Intranet Sites: Include all network paths
+  (UNCs)**: Enabled.
 
-Les stratégies Edge suivantes utilisent cette même définition de la zone
-Intranet.
+The Edge policies below rely on this same intranet zone definition.
 
-### 2. Ouvrir Office sans confirmation : `AutoLaunchProtocolsFromOrigins` (recommandé)
+### 2. Open Office without a prompt: `AutoLaunchProtocolsFromOrigins` (recommended)
 
-Sans ce réglage, Edge demande à chaque clic s'il doit ouvrir Word.
+Without this setting, Edge asks on every click whether to open Word.
 
-*Configuration ordinateur > Stratégies > Modèles d'administration > Microsoft
-Edge* : **Définir une liste de protocoles pouvant lancer une application
-externe à partir des origines listées sans demander l'autorisation de
-l'utilisateur** (*Define a list of protocols that can launch an external
-application from listed origins without prompting the user*). Edge 85 et plus.
+*Computer Configuration > Policies > Administrative Templates > Microsoft
+Edge*: **Define a list of protocols that can launch an external application
+from listed origins without prompting the user**. Edge 85 and later.
 
-Valeur (JSON, sur une ligne dans la GPO) :
+Value (JSON, on a single line in the policy):
 
 ```json
 [
@@ -183,71 +191,69 @@ Valeur (JSON, sur une ligne dans la GPO) :
 ]
 ```
 
-- Le nom du protocole s'écrit en minuscules, sans `:`.
-- L'origine est celle de GLPI (schéma, nom d'hôte et port s'il n'est pas
-  standard), **sans chemin** : une origine contenant `/glpi` est ignorée.
-- Registre équivalent : clé `HKLM\SOFTWARE\Policies\Microsoft\Edge`, valeur
-  `AutoLaunchProtocolsFromOrigins` (`REG_SZ`) contenant le JSON.
+- Protocol names are lower case, without `:`.
+- The origin is the GLPI one (scheme, host name, and port if not standard),
+  **without any path**: an origin containing `/glpi` is ignored.
+- Registry equivalent: key `HKLM\SOFTWARE\Policies\Microsoft\Edge`, value
+  `AutoLaunchProtocolsFromOrigins` (`REG_SZ`) containing the JSON.
 
-### 3. Bouton « Afficher dans l'Explorateur » : `IntranetFileLinksEnabled` (optionnel)
+### 3. "Show in File Explorer" button: `IntranetFileLinksEnabled` (optional)
 
-À n'utiliser que si l'option est cochée dans la configuration du plugin. Le
-bouton ouvre l'Explorateur sur le dossier du fichier, **fichier sélectionné**.
+Only needed if the option is enabled in the plugin configuration. The button
+opens File Explorer on the file's folder, **with the file selected**.
 
-*Configuration ordinateur > Stratégies > Modèles d'administration > Microsoft
-Edge > Paramètres de contenu* : **Autoriser les liens d'URL de fichiers de la
-zone intranet de Microsoft Edge à s'ouvrir dans l'Explorateur Windows**
-(*Allow intranet zone file URL links from Microsoft Edge to open in Windows
-File Explorer*) : Activé. Edge 95 et plus.
+*Computer Configuration > Policies > Administrative Templates > Microsoft Edge
+> Content settings*: **Allow intranet zone file URL links from Microsoft Edge
+to open in Windows File Explorer**: Enabled. Edge 95 and later.
 
-Conditions imposées par Edge :
+Conditions set by Edge:
 
-- GLPI doit être servi en **HTTPS** et classé en zone Intranet local ;
-- le partage DFS doit être en zone Intranet local (réglage 1).
+- GLPI must be served over **HTTPS** and be in the Local intranet zone;
+- the DFS share must be in the Local intranet zone (setting 1).
 
-Registre équivalent : clé `HKLM\SOFTWARE\Policies\Microsoft\Edge`, valeur
-`IntranetFileLinksEnabled` (`REG_DWORD`) à `1`.
+Registry equivalent: key `HKLM\SOFTWARE\Policies\Microsoft\Edge`, value
+`IntranetFileLinksEnabled` (`REG_DWORD`) set to `1`.
 
-### Vérification sur un poste
+### Checking a workstation
 
-1. `gpupdate /force`, puis redémarrer Edge.
-2. Ouvrir `edge://policy` : `AutoLaunchProtocolsFromOrigins` (et, le cas
-   échéant, `IntranetFileLinksEnabled`) apparaissent avec l'état « OK ».
-3. Dans GLPI, « Ouvrir dans Word » sur un document : Word s'ouvre sans
-   demande de confirmation d'Edge.
+1. `gpupdate /force`, then restart Edge.
+2. Open `edge://policy`: `AutoLaunchProtocolsFromOrigins` (and, if used,
+   `IntranetFileLinksEnabled`) are listed with status "OK".
+3. In GLPI, click "Open in Word" on a document: Word opens without an Edge
+   prompt.
 
-## Limites connues
+## Known limitations
 
-- **Pas d'ouverture en lecture seule** : la commande Office `ofv` n'est prévue
-  que pour des documents servis en http(s) ; pour un fichier du DFS, Office
-  l'ignore et ouvre en édition. Le bouton n'est donc pas proposé.
-- **Longueur des chemins** : Office n'ouvre pas les chemins de plus de 256
-  caractères (216 pour Excel), même si le plugin en accepte jusqu'à 1024.
-- **Historique** : GLPI limite chaque valeur à 255 caractères ; pour un chemin
-  plus long, la fin (dossier, nom du fichier) est conservée, précédée de « … ».
-- **Pas de vérification d'existence** : le serveur GLPI n'accède pas au DFS ;
-  un fichier déplacé ou supprimé n'est pas détecté.
-- **PDF, images, etc.** : pas d'ouverture directe depuis le navigateur ;
-  utiliser « Copier le chemin » (ou « Afficher dans l'Explorateur »).
+- **No read-only opening**: the Office `ofv` command is only defined for
+  documents served over http(s); for a file on the DFS share, Office ignores
+  it and opens the file for editing. The button is therefore not offered.
+- **Path length**: Office does not open paths longer than 256 characters (216
+  for Excel), although the plugin accepts up to 1024.
+- **History**: GLPI limits each value to 255 characters; for a longer path,
+  the end (folder, file name) is kept, preceded by "…".
+- **No existence check**: the GLPI server does not access the DFS share; a
+  moved or deleted file is not detected.
+- **PDF, images, etc.**: no direct opening from the browser; use "Copy path"
+  (or "Show in File Explorer").
 
-## Dépannage
+## Troubleshooting
 
-| Symptôme | Cause probable |
+| Symptom | Likely cause |
 |---|---|
-| Après une mise à jour, rien n'a changé à l'écran | Cache de GLPI : `php bin/console cache:clear`, puis Ctrl+F5. |
-| Edge demande à chaque fois s'il faut ouvrir Word | `AutoLaunchProtocolsFromOrigins` absente, ou origine différente de l'adresse réelle de GLPI (schéma, port, chemin). Vérifier `edge://policy`. |
-| « Afficher dans l'Explorateur » ne fait rien | `IntranetFileLinksEnabled` absente, GLPI en http, ou GLPI/DFS hors zone Intranet local. |
-| « Chemin réseau refusé : … » à l'enregistrement | Le message donne la raison ; le plus souvent, chemin hors des racines autorisées ou lettre de lecteur non configurée. |
-| Avertissement jaune « Le chemin enregistré n'est plus autorisé » | La racine du chemin a été retirée de la configuration : liens d'ouverture désactivés, la copie reste possible. |
-| `Duplicate key 21500` dans `php-errors.log` | Un autre plugin utilise le même identifiant d'option de recherche sur Document. |
+| Nothing changed on screen after an update | Unchanged version (no "Upgrade" button): `php bin/console cache:clear`, then Ctrl+F5. |
+| Edge asks every time whether to open Word | `AutoLaunchProtocolsFromOrigins` missing, or origin different from the actual GLPI address (scheme, port, path). Check `edge://policy`. |
+| "Show in File Explorer" does nothing | `IntranetFileLinksEnabled` missing, GLPI over http, or GLPI/DFS outside the Local intranet zone. |
+| "Network path rejected: …" on save | The message gives the reason; usually a path outside the allowed roots or an unconfigured drive letter. |
+| Yellow warning "The saved path is no longer allowed" | The path's root was removed from the configuration: opening links are disabled, copying still works. |
+| `Duplicate key 21500` in `php-errors.log` | Another plugin uses the same search option ID on Document. |
 
-## Compatibilité
+## Compatibility
 
-Testé sur GLPI 11.0.8. Le code est écrit et vérifié pour GLPI 11.0.x et
-12.0.x (références dans [docs/compat.md](docs/compat.md)) ; la recette
-fonctionnelle sur GLPI 12 reste à faire.
+Tested on GLPI 11.0.8. The code is written and checked for GLPI 11.0.x and
+12.0.x (references in [docs/compat.md](docs/compat.md), in French); functional
+testing on GLPI 12 is still to be done.
 
-## Développement
+## Development
 
 ```bash
 composer install
@@ -257,29 +263,51 @@ composer install
 composer test
 ```
 
-`composer test` lance PHPUnit puis les tests Node (`node --test
-tests/js/officelinks.test.js`, Node 18 ou plus) ; ces derniers comparent
-l'aperçu JavaScript aux résultats de `PathNormalizer`, qui fait foi.
+`composer test` runs PHPUnit, then the Node tests (`node --test
+tests/js/officelinks.test.js`, Node 18 or later); the latter compare the
+JavaScript preview with the results of `PathNormalizer`, which is the
+reference implementation.
 
-- **Sources de référence** : cloner les tags `11.0.8` et `12.0.1` de
-  `glpi-project/glpi` dans `.glpi-src/` (non versionné) et y vérifier toute API
-  du cœur avant de l'utiliser ; consigner le résultat dans
-  [docs/compat.md](docs/compat.md).
-- **Traductions** : chaînes en anglais avec `__('…', 'officelinks')`. Après
-  tout ajout ou modification de chaîne :
+- **Reference sources**: clone the `11.0.8` and `12.0.1` tags of
+  `glpi-project/glpi` into `.glpi-src/` (not versioned) and check any core API
+  there before using it; record the result in [docs/compat.md](docs/compat.md).
+- **Translations**: strings are written in English with
+  `__('…', 'officelinks')`. After adding or changing a string:
 
   ```bash
   php tools/locales.php
   ```
 
-  Le script met à jour `locales/officelinks.pot`, ajoute les nouvelles chaînes
-  à `locales/fr_FR.po` (à traduire) et à `locales/en_GB.po`, puis compile les
-  `.mo` (fr_FR, fr_CA, fr_BE, en_GB, en_US). `tests/LocalesTest.php` échoue
-  si une traduction manque ou si un `.mo` n'est pas à jour.
-- **Publication** : augmenter `PLUGIN_OFFICELINKS_VERSION` dans `setup.php`
-  (le numéro sert aussi à invalider le cache navigateur du JavaScript et du
-  CSS) et compléter `CHANGELOG.md`.
+  The script updates `locales/officelinks.pot`, adds new strings to
+  `locales/fr_FR.po` (to be translated) and `locales/en_GB.po`, then compiles
+  the `.mo` files (fr_FR, fr_CA, fr_BE, en_GB, en_US). `tests/LocalesTest.php`
+  fails if a translation is missing or a `.mo` file is out of date.
+- **Continuous integration** (GitHub Actions):
+  - `tests.yml`: `php -l`, PHPUnit and JavaScript tests on PHP 8.2, 8.3 and
+    8.4, on every pull request and every push to `main`;
+  - `release.yml`: builds `officelinks-X.Y.Z.zip` (allow-list of the files
+    GLPI needs: no `vendor/`, tests, tools or development files) and attaches
+    it to every pull request run.
+- **Releasing a version**:
+  1. bump `PLUGIN_OFFICELINKS_VERSION` in `setup.php` (GLPI then offers
+     "Upgrade", and the number busts the browser cache of the JavaScript and
+     CSS);
+  2. rename the `## [Non publié]` section of `CHANGELOG.md` to
+     `## [X.Y.Z] - YYYY-MM-DD`;
+  3. merge into `main`, then create and push the tag:
 
-## Licence
+     ```bash
+     git tag vX.Y.Z
+     ```
 
-GPL-3.0-or-later — voir [LICENSE](LICENSE).
+     ```bash
+     git push origin vX.Y.Z
+     ```
+
+     The `release.yml` workflow checks that the tag matches the version, runs
+     the tests again and publishes the GitHub release with the archive and
+     the CHANGELOG notes.
+
+## License
+
+GPL-3.0-or-later — see [LICENSE](LICENSE).

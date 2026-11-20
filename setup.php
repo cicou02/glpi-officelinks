@@ -13,8 +13,13 @@
 use Glpi\Plugin\Hooks;
 use GlpiPlugin\Officelinks\DocumentHooks;
 
-// Version du plugin.
+// Version du plugin. À augmenter à chaque publication : GLPI propose alors
+// le bouton « Mettre à jour », et le numéro invalide le cache navigateur du
+// JavaScript et du CSS. Le tag de release (vX.Y.Z) doit lui correspondre.
 define('PLUGIN_OFFICELINKS_VERSION', '0.1.0');
+
+// Dépôt GitHub (page d'accueil, vérification des nouvelles versions).
+define('PLUGIN_OFFICELINKS_REPOSITORY', 'cicou02/glpi-officelinks');
 
 // Bornes de compatibilité GLPI : la borne max est exclusive
 // (Plugin::checkGlpiVersion() compare avec « < », cf. docs/compat.md).
@@ -68,7 +73,7 @@ function plugin_version_officelinks(): array
         'version'      => PLUGIN_OFFICELINKS_VERSION,
         'author'       => 'OfficeLinks contributors',
         'license'      => 'GPL-3.0-or-later',
-        'homepage'     => 'https://github.com/cicou02/glpi-officelinks',
+        'homepage'     => 'https://github.com/' . PLUGIN_OFFICELINKS_REPOSITORY,
         'requirements' => [
             'glpi' => [
                 'min' => PLUGIN_OFFICELINKS_MIN_GLPI,

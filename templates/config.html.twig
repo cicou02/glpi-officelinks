@@ -14,6 +14,20 @@
     </div>
 
     <div class="card-body">
+        {# Rempli par public/js/officelinks.js si une version plus récente est publiée sur GitHub. #}
+        <div class="alert alert-info d-none" role="status"
+             data-officelinks-update-check
+             data-officelinks-version="{{ update_check.version }}"
+             data-officelinks-api-url="{{ update_check.api_url }}"
+             data-officelinks-releases-url="{{ update_check.releases_url }}"
+             data-officelinks-message="{{ __('OfficeLinks %1$s is available (installed version: %2$s).', 'officelinks') }}"
+             data-officelinks-link-label="{{ __('See the release', 'officelinks') }}">
+        </div>
+
+        <p class="text-muted small mb-3">
+            {{ __('Installed version: %s', 'officelinks')|format(update_check.version) }}
+        </p>
+
         {% if errors is not empty %}
             <div class="alert alert-danger" role="alert">
                 <h4 class="alert-title">{{ __('The configuration was not saved. Please fix the following lines:', 'officelinks') }}</h4>

@@ -63,6 +63,13 @@ TemplateRenderer::getInstance()->display('@officelinks/config.html.twig', [
     'form'       => $form,
     'file_links' => $file_links,
     'errors'     => $errors,
+    // Vérification d'une nouvelle version, faite par le navigateur de
+    // l'administrateur (aucun appel sortant depuis le serveur GLPI).
+    'update_check' => [
+        'version'      => PLUGIN_OFFICELINKS_VERSION,
+        'api_url'      => 'https://api.github.com/repos/' . PLUGIN_OFFICELINKS_REPOSITORY . '/releases/latest',
+        'releases_url' => 'https://github.com/' . PLUGIN_OFFICELINKS_REPOSITORY . '/releases',
+    ],
 ]);
 Html::closeForm();
 

@@ -1,7 +1,9 @@
 /**
  * OfficeLinks — plugin GLPI.
  *
- * Aperçu du chemin saisi, copie du chemin, préremplissage du nom du document.
+ * Aperçu du chemin saisi, copie du chemin, préremplissage du nom du document,
+ * et, sur la page de configuration, signalement d'une nouvelle version publiée
+ * sur GitHub.
  *
  * La normalisation ci-dessous reproduit src/PathNormalizer.php UNIQUEMENT
  * pour l'aperçu : seule la validation côté serveur fait foi.
@@ -456,7 +458,113 @@
         });
     }
 
+    // ------------------------------------------------------------------
+    // Nouvelle version (page de configuration)
+    // ------------------------------------------------------------------
+
+    var UPDATE_CACHE_KEY = 'officelinks.latestRelease';
+    var UPDATE_CACHE_TTL = 12 * 3600 * 1000; // API GitHub : 60 appels/heure sans authentification
+
+    /** Compare deux versions « X.Y.Z » (préfixe « v » et suffixe -/+ ignorés). */
+    function compareVersions(a, b) {
+        var parse = function (version) {
+            return String(version).trim().replace(/^v/i, '').split(/[-+]/)[0].split('.').map(function (part) {
+                var number = parseInt(part, 10);
+                return isNaN(number) ? 0 : number;
+            });
+        };
+        var left = parse(a);
+        var right = parse(b);
+        for (var i = 0; i < Math.max(left.length, right.length); i++) {
+            var diff = (left[i] || 0) - (right[i] || 0);
+            if (diff !== 0) {
+                return diff > 0 ? 1 : -1;
+            }
+        }
+        return 0;
+    }
+
+    function readCachedRelease(apiUrl) {
+        try {
+            var cached = JSON.parse(window.localStorage.getItem(UPDATE_CACHE_KEY) || 'null');
+            if (cached && cached.apiUrl === apiUrl && Date.now() - cached.time < UPDATE_CACHE_TTL) {
+                return cached;
+            }
+        } catch (e) {
+            // Stockage indisponible : on interroge l'API.
+        }
+        return null;
+    }
+
+    function writeCachedRelease(entry) {
+        try {
+            window.localStorage.setItem(UPDATE_CACHE_KEY, JSON.stringify(entry));
+        } catch (e) {
+            // Sans conséquence.
+        }
+    }
+
+    function fetchLatestRelease(apiUrl) {
+        var cached = readCachedRelease(apiUrl);
+        if (cached !== null) {
+            return Promise.resolve(cached);
+        }
+        return fetch(apiUrl, {headers: {Accept: 'application/vnd.github+json'}}).then(function (response) {
+            // 404 : aucune release publiée (ou dépôt privé) ; rien à signaler.
+            var entry = {apiUrl: apiUrl, time: Date.now(), tag: null, url: null};
+            if (!response.ok) {
+                writeCachedRelease(entry);
+                return entry;
+            }
+            return response.json().then(function (release) {
+                entry.tag = typeof release.tag_name === 'string' ? release.tag_name : null;
+                entry.url = typeof release.html_url === 'string' ? release.html_url : null;
+                writeCachedRelease(entry);
+                return entry;
+            });
+        });
+    }
+
+    function checkForUpdate(element) {
+        var current = element.getAttribute('data-officelinks-version') || '';
+        var apiUrl = element.getAttribute('data-officelinks-api-url') || '';
+        var releasesUrl = element.getAttribute('data-officelinks-releases-url') || '';
+        if (current === '' || apiUrl.indexOf('https://api.github.com/') !== 0 || typeof fetch !== 'function') {
+            return;
+        }
+        fetchLatestRelease(apiUrl).then(function (release) {
+            if (!release.tag || compareVersions(release.tag, current) <= 0) {
+                return;
+            }
+            var latest = release.tag.replace(/^v/i, '');
+            var message = (element.getAttribute('data-officelinks-message') || '')
+                .replace('%1$s', latest)
+                .replace('%2$s', current);
+            var link = document.createElement('a');
+            // Lien de l'API accepté seulement s'il pointe vers github.com.
+            link.href = release.url && release.url.indexOf('https://github.com/') === 0 ? release.url : releasesUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = element.getAttribute('data-officelinks-link-label') || link.href;
+            element.textContent = message + ' ';
+            element.appendChild(link);
+            element.classList.remove('d-none');
+        }).catch(function () {
+            // Hors ligne, API injoignable ou bloquée : silence.
+        });
+    }
+
+    function initUpdateChecks() {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-officelinks-update-check]'), checkForUpdate);
+    }
+
     if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initUpdateChecks);
+        } else {
+            initUpdateChecks();
+        }
+
         document.addEventListener('input', function (event) {
             var input = event.target;
             if (input instanceof HTMLInputElement && input.hasAttribute('data-officelinks-input')) {
@@ -481,6 +589,7 @@
             isBlank: isBlank,
             suggestedName: suggestedName,
             officeApplication: officeApplication,
+            compareVersions: compareVersions,
         };
     }
 })();

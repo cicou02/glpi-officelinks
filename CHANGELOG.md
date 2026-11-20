@@ -44,3 +44,10 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - README complet : installation, mise à jour, configuration, utilisation,
   déploiement GPO (zone Intranet local, `AutoLaunchProtocolsFromOrigins`,
   `IntranetFileLinksEnabled`), limites connues, dépannage.
+- README en anglais (`README.md`) et en français (`README.fr.md`).
+- Mise à jour : le bouton « Mettre à jour » de GLPI vide lui-même le cache
+  des templates (plus besoin de `cache:clear` quand la version change). La
+  page de configuration affiche la version installée et signale une version
+  plus récente publiée sur GitHub.
+- Actions GitHub : tests (PHP 8.2 à 8.4, Node) et construction de l'archive
+  de release `officelinks-X.Y.Z.zip` (fichiers du plugin uniquement).

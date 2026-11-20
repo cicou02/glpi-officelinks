@@ -14,7 +14,7 @@ msgstr ""
 msgid "%1$s, line %2$d: %3$s (%4$s)"
 msgstr ""
 
-#: src/PluginConfig.php:47 templates/config.html.twig:41
+#: src/PluginConfig.php:47 templates/config.html.twig:55
 msgid "Allowed roots"
 msgstr ""
 
@@ -26,19 +26,23 @@ msgstr ""
 msgid "Copy path"
 msgstr ""
 
-#: templates/config.html.twig:73
+#: templates/config.html.twig:87
 msgid "Displays a \"Show in File Explorer\" button on documents, which opens the folder containing the file with the file selected (file:// link). Disabled by default: it requires the Microsoft Edge policy IntranetFileLinksEnabled on workstations, GLPI served over HTTPS, and GLPI and the file share in the Local intranet zone."
 msgstr ""
 
-#: src/PluginConfig.php:48 templates/config.html.twig:53
+#: src/PluginConfig.php:48 templates/config.html.twig:67
 msgid "Drive letter mappings"
 msgstr ""
 
-#: src/PluginConfig.php:49 templates/config.html.twig:65
+#: src/PluginConfig.php:49 templates/config.html.twig:79
 msgid "Host aliases"
 msgstr ""
 
-#: hook.php:85 templates/document_field.html.twig:71
+#: templates/config.html.twig:28
+msgid "Installed version: %s"
+msgstr ""
+
+#: hook.php:95 templates/document_field.html.twig:71
 msgid "Network path"
 msgstr ""
 
@@ -50,7 +54,7 @@ msgstr ""
 msgid "Network path rejected: %1$s (%2$s)"
 msgstr ""
 
-#: templates/config.html.twig:30
+#: templates/config.html.twig:44
 msgid "No allowed root is configured: network paths cannot be saved on documents."
 msgstr ""
 
@@ -58,19 +62,23 @@ msgstr ""
 msgid "OfficeLinks"
 msgstr ""
 
+#: templates/config.html.twig:23
+msgid "OfficeLinks %1$s is available (installed version: %2$s)."
+msgstr ""
+
 #: templates/config.html.twig:12
 msgid "OfficeLinks configuration"
 msgstr ""
 
-#: templates/config.html.twig:37
+#: templates/config.html.twig:51
 msgid "One UNC root per line. Only files located under one of these roots can be linked to a document. Matching is case-insensitive and done folder by folder."
 msgstr ""
 
-#: templates/config.html.twig:61
+#: templates/config.html.twig:75
 msgid "One alias per line: target server path = DFS namespace path. Paths entered with the target server are rewritten to the DFS namespace."
 msgstr ""
 
-#: templates/config.html.twig:49
+#: templates/config.html.twig:63
 msgid "One mapping per line: drive letter = UNC path. Paths entered with this drive letter are translated to the UNC path."
 msgstr ""
 
@@ -86,15 +94,19 @@ msgstr ""
 msgid "Path copied to the clipboard."
 msgstr ""
 
+#: templates/config.html.twig:24
+msgid "See the release"
+msgstr ""
+
 #: templates/document_field.html.twig:50
 msgid "Show in File Explorer"
 msgstr ""
 
-#: templates/config.html.twig:76
+#: templates/config.html.twig:90
 msgid "Show the \"Show in File Explorer\" button"
 msgstr ""
 
-#: templates/config.html.twig:19
+#: templates/config.html.twig:33
 msgid "The configuration was not saved. Please fix the following lines:"
 msgstr ""
 

@@ -59,3 +59,13 @@ test('officeApplication', () => {
     assert.equal(officelinks.officeApplication('\\\\h\\s\\a.csv', types), 'Excel');
     assert.equal(officelinks.officeApplication('\\\\h\\s\\a.pdf', types), null);
 });
+
+test('compareVersions', () => {
+    assert.equal(officelinks.compareVersions('v1.0.0', '0.1.0'), 1);
+    assert.equal(officelinks.compareVersions('1.0.0', '1.0.0'), 0);
+    assert.equal(officelinks.compareVersions('v1.0', '1.0.0'), 0);
+    assert.equal(officelinks.compareVersions('1.2.10', '1.2.9'), 1);
+    assert.equal(officelinks.compareVersions('1.2.9', '1.10.0'), -1);
+    assert.equal(officelinks.compareVersions('V2.0.0-rc1', '1.9.9'), 1);
+    assert.equal(officelinks.compareVersions('0.1.0', '0.1.1'), -1);
+});

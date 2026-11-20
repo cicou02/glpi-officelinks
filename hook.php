@@ -8,11 +8,15 @@
  */
 
 use GlpiPlugin\Officelinks\DocumentPath;
+use GlpiPlugin\Officelinks\Maintenance;
 use GlpiPlugin\Officelinks\PluginConfig;
 use GlpiPlugin\Officelinks\Settings;
 
 /**
- * Installation (et réinstallation) du plugin.
+ * Installation, réinstallation et mise à jour du plugin.
+ *
+ * GLPI appelle aussi cette fonction pour le bouton « Mettre à jour », affiché
+ * quand PLUGIN_OFFICELINKS_VERSION diffère de la version enregistrée.
  *
  * Idempotente : la table n'est créée que si elle n'existe pas et seules
  * les clés de configuration absentes reçoivent leur valeur par défaut.
@@ -54,6 +58,12 @@ function plugin_officelinks_install(array $args = []): bool
     $missing = array_diff_key(Settings::defaultStored(), $current);
     if ($missing !== []) {
         Config::setConfigurationValues(PluginConfig::CONTEXT, $missing);
+    }
+
+    // Installation ou mise à jour (bouton « Mettre à jour » de GLPI) : les
+    // templates du plugin ont pu changer, GLPI ne les recompilerait pas.
+    if (!Maintenance::resetTemplateCache()) {
+        trigger_error('OfficeLinks: unable to fully clear the compiled templates cache.', E_USER_WARNING);
     }
 
     return true;
