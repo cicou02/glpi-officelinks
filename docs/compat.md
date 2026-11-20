@@ -194,4 +194,4 @@ La classe n'utilise aucune API du cœur de GLPI.
 | API | 11.0.8 | 12.0.1 | Remarque |
 |---|---|---|---|
 | `Environment::shouldExpectResourcesToChange()` | `src/Glpi/Application/Environment.php:207` | `src/Glpi/Application/Environment.php:197` | `false` en production/staging si GLPI n'est pas une copie git : Twig `auto_reload` désactivé (11 `src/Glpi/Application/View/TemplateRenderer.php:88`, 12 `src/Glpi/Kernel/Listener/PostBootListener/InitializeTwigEnvironment.php:84`). Un template de plugin modifié n'est pas recompilé → `php bin/console cache:clear` après chaque mise à jour. |
-| `Plugin::getPluginFilesVersion()` (paramètre `?v=` des JS/CSS) | `src/Plugin.php:1965` | idem | = ; renvoie la version du plugin : l'augmenter à chaque publication pour invalider le cache navigateur. |
+| `Plugin::getPluginFilesVersion()` (paramètre `?v=` des JS/CSS) | `src/Plugin.php:1965` | `src/Plugin.php:1961` | = ; renvoie la version du plugin : l'augmenter à chaque publication pour invalider le cache navigateur. |
