@@ -30,6 +30,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - Option de recherche « Chemin réseau » (identifiant 21500) dans
   Gestion > Documents : colonne affichable et critère de recherche.
 - Historique du document : une ligne « Chemin réseau : ancien → nouveau » à
-  chaque modification ou suppression du chemin.
+  chaque modification ou suppression du chemin. Au-delà de 255 caractères
+  (limite de `glpi_logs`), la fin du chemin est conservée, précédée de « … ».
 - Suppression du bouton « Lecture seule » (`ofv` ignoré par Office pour les
   chemins `file://`).

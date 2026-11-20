@@ -304,8 +304,14 @@ final class DocumentHooks
 
         // Même condition que CommonDBTM::update() pour historiser.
         if ($item->dohistory && empty($item->input['_no_history'])) {
-            // Log::history() tronque les valeurs à 255 caractères.
-            Log::history($id, Document::class, [DocumentPath::SEARCH_OPTION_ID, $old, $path], '', 0);
+            // Log::history() garde les 255 premiers caractères : on garde la fin.
+            Log::history(
+                $id,
+                Document::class,
+                [DocumentPath::SEARCH_OPTION_ID, DocumentPath::forHistory($old), DocumentPath::forHistory($path)],
+                '',
+                0
+            );
         }
     }
 

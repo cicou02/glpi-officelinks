@@ -30,6 +30,23 @@ final class DocumentPath
      */
     public const SEARCH_OPTION_ID = 21500;
 
+    /** Longueur maximale d'une valeur dans glpi_logs (Log::history() tronque au-delà). */
+    public const HISTORY_MAX_LENGTH = 255;
+
+    /**
+     * Valeur à écrire dans l'historique. Log::history() garde les 255
+     * premiers caractères ; pour un chemin, la fin (dossier, nom du fichier)
+     * est plus utile que le début (serveur, racine, connus) : on garde donc
+     * la fin, précédée de « … ». Fonction pure.
+     */
+    public static function forHistory(string $path): string
+    {
+        if (mb_strlen($path, 'UTF-8') <= self::HISTORY_MAX_LENGTH) {
+            return $path;
+        }
+        return '…' . mb_substr($path, -(self::HISTORY_MAX_LENGTH - 1), null, 'UTF-8');
+    }
+
     /**
      * Chemin UNC canonique du document, ou null s'il n'en a pas.
      */
