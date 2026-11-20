@@ -56,6 +56,18 @@ if (isset($_POST['update'])) {
     $file_links = $settings->enableFileLinks;
 }
 
+// Entrées stockées invalides (écrites hors de cette page) : ignorées par le
+// plugin, elles disparaîtront au prochain enregistrement.
+$labels = [
+    Settings::FIELD_ALLOWED_ROOTS  => __('Allowed roots', 'officelinks'),
+    Settings::FIELD_DRIVE_MAPPINGS => __('Drive letter mappings', 'officelinks'),
+    Settings::FIELD_HOST_ALIASES   => __('Host aliases', 'officelinks'),
+];
+$ignored = [];
+foreach (Settings::ignoredStoredEntries(PluginConfig::loadStored()) as $field => $count) {
+    $ignored[] = sprintf(__('%1$s (ignored entries: %2$d)', 'officelinks'), $labels[$field], $count);
+}
+
 Html::header(__('OfficeLinks', 'officelinks'), '', 'config', 'plugin');
 
 echo '<form method="post" action="' . htmlescape($form_url) . '">';
@@ -63,6 +75,7 @@ TemplateRenderer::getInstance()->display('@officelinks/config.html.twig', [
     'form'       => $form,
     'file_links' => $file_links,
     'errors'     => $errors,
+    'ignored'    => $ignored,
     // Vérification d'une nouvelle version, faite par le navigateur de
     // l'administrateur (aucun appel sortant depuis le serveur GLPI).
     'update_check' => [

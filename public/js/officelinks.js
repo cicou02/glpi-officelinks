@@ -19,7 +19,7 @@
 
     var MAX_INPUT_BYTES = 4096;
     var MAX_DECODE_PASSES = 5;
-    var FORBIDDEN_CHARS = ['\\', '/', '<', '>', ':', '"', '|', '?', '*'];
+    var FORBIDDEN_CHARS = ['\\', '/', '<', '>', ':', '"', '|', '?', '*', '\u00A5', '\u20A9', '\u2215', '\u2216'];
     var BLANKS = /^[ \t\r\n]+|[ \t\r\n]+$/g;
 
     // ------------------------------------------------------------------
@@ -85,7 +85,7 @@
         if (typeof path.isWellFormed === 'function' && !path.isWellFormed()) {
             reject('invalid_encoding');
         }
-        if (/[\p{Cc}\u200E\u200F\u202A-\u202E\u2066-\u2069]/u.test(path)) {
+        if (/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(path)) {
             reject('control_char');
         }
     }
@@ -537,9 +537,7 @@
                 return;
             }
             var latest = release.tag.replace(/^v/i, '');
-            var message = (element.getAttribute('data-officelinks-message') || '')
-                .replace('%1$s', latest)
-                .replace('%2$s', current);
+            var message = formatMessage(element.getAttribute('data-officelinks-message') || '', latest, current);
             var link = document.createElement('a');
             // Lien de l'API accepté seulement s'il pointe vers github.com.
             link.href = release.url && release.url.indexOf('https://github.com/') === 0 ? release.url : releasesUrl;
@@ -554,6 +552,17 @@
         });
     }
 
+    /**
+     * Message « %1$s est disponible (version installée : %2$s) ».
+     * Remplacement par fonction : un « $& » ou « $` » venu de l'API GitHub
+     * n'est pas interprété comme motif de remplacement.
+     */
+    function formatMessage(template, latest, current) {
+        return template
+            .replace('%1$s', function () { return latest; })
+            .replace('%2$s', function () { return current; });
+    }
+
     function initUpdateChecks() {
         Array.prototype.forEach.call(document.querySelectorAll('[data-officelinks-update-check]'), checkForUpdate);
     }
@@ -565,16 +574,22 @@
             initUpdateChecks();
         }
 
+        // Écouteurs délégués limités au bloc du plugin (.officelinks-document) :
+        // un attribut data-officelinks-* ailleurs dans la page est ignoré.
         document.addEventListener('input', function (event) {
             var input = event.target;
-            if (input instanceof HTMLInputElement && input.hasAttribute('data-officelinks-input')) {
+            if (
+                input instanceof HTMLInputElement
+                && input.hasAttribute('data-officelinks-input')
+                && input.closest('.officelinks-document') !== null
+            ) {
                 updatePreview(input);
                 prefillName(input);
             }
         });
 
         document.addEventListener('click', function (event) {
-            var button = event.target instanceof Element ? event.target.closest('[data-officelinks-copy]') : null;
+            var button = event.target instanceof Element ? event.target.closest('.officelinks-document [data-officelinks-copy]') : null;
             if (button !== null) {
                 event.preventDefault();
                 onCopy(button);
@@ -590,6 +605,7 @@
             suggestedName: suggestedName,
             officeApplication: officeApplication,
             compareVersions: compareVersions,
+            formatMessage: formatMessage,
         };
     }
 })();

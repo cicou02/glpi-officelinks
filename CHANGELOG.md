@@ -51,3 +51,30 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   plus récente publiée sur GitHub.
 - Actions GitHub : tests (PHP 8.2 à 8.4, Node) et construction de l'archive
   de release `officelinks-X.Y.Z.zip` (fichiers du plugin uniquement).
+
+### Sécurité (audit avant v1.0.0)
+
+Audit avec la méthode Cloudflare *security-audit-skill* et zizmor : aucune
+vulnérabilité confirmée. Renforcements appliqués :
+
+- Chemins : refus des caractères invisibles de mise en forme (catégorie
+  Unicode Cf, dont U+200B, U+FEFF, U+061C, U+00AD) et des séparateurs de
+  ligne/paragraphe, ainsi que de `¥ ₩ ∕ ∖` (convertis en séparateurs par
+  certaines pages de code Windows). Même contrôle dans l'aperçu JavaScript.
+- Le chemin n'est enregistré qu'une fois la mise à jour du Document acceptée
+  par GLPI (y compris pour deux enregistrements dans la même seconde).
+- Nouveau document : le champ et la configuration utilisée par l'aperçu ne
+  sont proposés qu'avec le droit « Documents » en création (plus avec le
+  seul droit d'ajout de suivi).
+- Installation et mise à jour : suppression des chemins dont le document
+  n'existe plus.
+- Configuration : un alias dont la source contient « = » est relu
+  correctement ; la page signale les entrées enregistrées invalides
+  (ignorées, supprimées au prochain enregistrement).
+- JavaScript : écouteurs limités au bloc du plugin ; message de mise à jour
+  insensible aux motifs `$&` d'un tag GitHub.
+- Release : construction et tests sans droit d'écriture, publication dans un
+  job séparé (tag uniquement) qui vérifie le sha256 de l'archive ; version
+  validée et passée par variable d'environnement ; actions épinglées par SHA
+  avec Dependabot ; `persist-credentials: false` ; exécutions concurrentes
+  sérialisées.

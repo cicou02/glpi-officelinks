@@ -24,7 +24,17 @@ final class PluginConfig
      */
     public static function load(): Settings
     {
-        return Settings::fromStored(Config::getConfigurationValues(self::CONTEXT));
+        return Settings::fromStored(self::loadStored());
+    }
+
+    /**
+     * Valeurs brutes stockées dans glpi_configs (contexte du plugin).
+     *
+     * @return array<string, mixed>
+     */
+    public static function loadStored(): array
+    {
+        return Config::getConfigurationValues(self::CONTEXT);
     }
 
     /**

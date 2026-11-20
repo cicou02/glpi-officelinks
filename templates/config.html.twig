@@ -39,6 +39,17 @@
             </div>
         {% endif %}
 
+        {% if ignored is not empty %}
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-title">{{ __('Some stored entries are invalid and are ignored. They will be removed the next time this configuration is saved.', 'officelinks') }}</h4>
+                <ul class="mb-0">
+                    {% for line in ignored %}
+                        <li>{{ line }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         {% if form.allowed_roots is empty %}
             <div class="alert alert-warning" role="alert">
                 {{ __('No allowed root is configured: network paths cannot be saved on documents.', 'officelinks') }}

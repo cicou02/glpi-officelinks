@@ -217,4 +217,46 @@ final class SettingsTest extends TestCase
         $this->assertFalse($normalizer->isUnderAllowedRoot('\\\\internal.example.com\\DFS'));
         $this->assertFalse((new PathNormalizer([]))->isUnderAllowedRoot(self::INFO));
     }
+
+    public function testAliasSourceContainingEqualsSignRoundTrips(): void
+    {
+        // « = » est autorisé dans un nom de dossier Windows.
+        $source   = '\\\\srv-fic01\\Ancien=Partage';
+        $settings = new Settings([self::INFO], [], [$source => self::INFO]);
+        $text     = $settings->toFormText();
+
+        $result = Settings::fromForm($text['allowed_roots'], $text['drive_mappings'], $text['host_aliases'], false);
+
+        $this->assertSame([], $result['errors']);
+        $this->assertSame([$source => self::INFO], $result['settings']->hostAliases);
+    }
+
+    public function testDriveSeparatorWithoutSpaces(): void
+    {
+        $result = Settings::fromForm(self::INFO, 'I:=' . self::INFO, '', false);
+
+        $this->assertSame([], $result['errors']);
+        $this->assertSame(['I:' => self::INFO], $result['settings']->driveMappings);
+    }
+
+    public function testIgnoredStoredEntries(): void
+    {
+        $this->assertSame([], Settings::ignoredStoredEntries(Settings::defaultStored()));
+        $this->assertSame([], Settings::ignoredStoredEntries((new Settings([self::INFO], ['I:' => self::INFO]))->toStored()));
+
+        $stored = [
+            'allowed_roots'  => json_encode([self::INFO, '\\\\h', 'pas un chemin']),
+            'drive_mappings' => json_encode(['I:' => self::INFO, 'II' => self::INFO, 'K:' => 'x']),
+            'host_aliases'   => '{json illisible',
+        ];
+
+        $this->assertSame(
+            [
+                Settings::FIELD_ALLOWED_ROOTS  => 2,
+                Settings::FIELD_DRIVE_MAPPINGS => 2,
+                Settings::FIELD_HOST_ALIASES   => 1,
+            ],
+            Settings::ignoredStoredEntries($stored)
+        );
+    }
 }

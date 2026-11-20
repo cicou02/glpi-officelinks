@@ -69,3 +69,8 @@ test('compareVersions', () => {
     assert.equal(officelinks.compareVersions('V2.0.0-rc1', '1.9.9'), 1);
     assert.equal(officelinks.compareVersions('0.1.0', '0.1.1'), -1);
 });
+
+test('formatMessage : les motifs $ du tag ne sont pas interprétés', () => {
+    assert.equal(officelinks.formatMessage('%1$s dispo (%2$s)', '1.2.0', '1.0.0'), '1.2.0 dispo (1.0.0)');
+    assert.equal(officelinks.formatMessage('%1$s dispo (%2$s)', '1.2.0$&$`', '1.0.0'), '1.2.0$&$` dispo (1.0.0)');
+});

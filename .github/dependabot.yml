@@ -1,0 +1,15 @@
+# OfficeLinks — mises à jour proposées par Dependabot.
+# Les actions GitHub sont épinglées par SHA : Dependabot ouvre une pull
+# request quand une nouvelle version est publiée (SHA et commentaire).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # Délai avant de proposer une version tout juste publiée.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']

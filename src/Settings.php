@@ -108,6 +108,50 @@ final class Settings
     }
 
     /**
+     * Entrées stockées que fromStored() écarte (JSON illisible, chemin ou
+     * lettre invalide), par champ. Une configuration écrite hors de la page
+     * du plugin (base de données, API Config) peut en contenir : la page de
+     * configuration les signale, car elles disparaîtront au prochain
+     * enregistrement.
+     *
+     * @param array<string, mixed> $stored Résultat de Config::getConfigurationValues().
+     *
+     * @return array<string, int> Champ (FIELD_*) => nombre d'entrées écartées.
+     */
+    public static function ignoredStoredEntries(array $stored): array
+    {
+        $ignored = [];
+        foreach ([self::FIELD_ALLOWED_ROOTS, self::FIELD_DRIVE_MAPPINGS, self::FIELD_HOST_ALIASES] as $field) {
+            $raw = $stored[$field] ?? null;
+            if (!is_string($raw) || $raw === '') {
+                continue;
+            }
+            $decoded = json_decode($raw, true);
+            if (!is_array($decoded)) {
+                $ignored[$field] = 1;
+                continue;
+            }
+            $count = 0;
+            foreach ($decoded as $key => $value) {
+                $valid = match ($field) {
+                    self::FIELD_ALLOWED_ROOTS  => PathNormalizer::canonicalizeConfigPath($value) !== null,
+                    self::FIELD_DRIVE_MAPPINGS => PathNormalizer::normalizeDriveKey($key) !== null
+                        && PathNormalizer::canonicalizeConfigPath($value) !== null,
+                    default                    => PathNormalizer::canonicalizeConfigPath($key) !== null
+                        && PathNormalizer::canonicalizeConfigPath($value) !== null,
+                };
+                if (!$valid) {
+                    $count++;
+                }
+            }
+            if ($count > 0) {
+                $ignored[$field] = $count;
+            }
+        }
+        return $ignored;
+    }
+
+    /**
      * Valeurs à stocker (toutes des chaînes).
      *
      * @return array<string, string>
@@ -277,13 +321,21 @@ final class Settings
     }
 
     /**
-     * « gauche = droite » ; coupe au premier « = ».
+     * « gauche = droite ».
+     *
+     * « = » est autorisé dans un nom de dossier Windows : on coupe donc au
+     * premier « = » suivi (espaces compris) du début d'un chemin UNC
+     * (\\, // ou file:), et à défaut au premier « = ».
      *
      * @return array{string, string}|null
      */
     private static function splitPair(string $line): ?array
     {
-        $parts = explode('=', $line, 2);
+        if (preg_match('#^(.+?)=\s*((?:\\\\\\\\|//|file:).*)$#isu', $line, $matches) === 1) {
+            $parts = [$matches[1], $matches[2]];
+        } else {
+            $parts = explode('=', $line, 2);
+        }
         if (count($parts) !== 2 || trim($parts[0]) === '' || trim($parts[1]) === '') {
             return null;
         }

@@ -32,8 +32,12 @@ final class PathNormalizer
     /** Longueur maximale de la saisie brute, en octets (avant décodage). */
     private const MAX_INPUT_BYTES = 4096;
 
-    /** Caractères interdits dans un nom de fichier ou de dossier Windows. */
-    private const FORBIDDEN_CHARS = ['\\', '/', '<', '>', ':', '"', '|', '?', '*'];
+    /**
+     * Caractères interdits dans un nom de fichier ou de dossier Windows,
+     * plus ceux que certaines pages de code ANSI convertissent en séparateur
+     * (« best fit » : ¥ et ₩ en cp932/cp949, ∕ et ∖) : défense en profondeur.
+     */
+    private const FORBIDDEN_CHARS = ['\\', '/', '<', '>', ':', '"', '|', '?', '*', "\u{00A5}", "\u{20A9}", "\u{2215}", "\u{2216}"];
 
     /** Nombre maximal de passes de décodage %XX pour détecter un « .. » masqué. */
     private const MAX_DECODE_PASSES = 5;
@@ -203,15 +207,17 @@ final class PathNormalizer
     }
 
     /**
-     * UTF-8 valide, sans caractère de contrôle ni de mise en forme
-     * bidirectionnelle (qui permettrait de maquiller l'extension affichée).
+     * UTF-8 valide, sans caractère de contrôle (Cc), de mise en forme (Cf :
+     * marques bidirectionnelles, caractères invisibles comme U+200B ou U+FEFF)
+     * ni séparateur de ligne ou de paragraphe : ils permettraient de maquiller
+     * le nom ou l'extension affichés.
      */
     private static function assertSafeCharacters(string $path): void
     {
         if (!mb_check_encoding($path, 'UTF-8')) {
             throw new InvalidPathException(InvalidPathException::INVALID_ENCODING, 'Invalid UTF-8.');
         }
-        if (preg_match('/[\p{Cc}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', $path) === 1) {
+        if (preg_match('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $path) === 1) {
             throw new InvalidPathException(InvalidPathException::CONTROL_CHAR, 'Control character in path.');
         }
     }

@@ -7,6 +7,7 @@
  * @link    https://github.com/cicou02/glpi-officelinks
  */
 
+use Glpi\DBAL\QuerySubQuery;
 use GlpiPlugin\Officelinks\DocumentPath;
 use GlpiPlugin\Officelinks\Maintenance;
 use GlpiPlugin\Officelinks\PluginConfig;
@@ -50,6 +51,18 @@ function plugin_officelinks_install(array $args = []): bool
             ) ENGINE=InnoDB DEFAULT CHARSET={$charset} COLLATE={$collation} ROW_FORMAT=DYNAMIC"
         );
     }
+
+    // Chemins orphelins : document purgé pendant que le plugin était
+    // désactivé (hook item_purge non appelé). Supprimés pour qu'un identifiant
+    // de document réutilisé ne récupère jamais un ancien chemin.
+    $DB->delete(DocumentPath::TABLE, [
+        'NOT' => [
+            'documents_id' => new QuerySubQuery([
+                'SELECT' => 'id',
+                'FROM'   => Document::getTable(),
+            ]),
+        ],
+    ]);
 
     // Valeurs par défaut (tout vide, liens file:// désactivés) sans écraser
     // une configuration existante. L'autoloader du plugin est actif ici

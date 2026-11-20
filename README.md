@@ -287,7 +287,11 @@ reference implementation.
     8.4, on every pull request and every push to `main`;
   - `release.yml`: builds `officelinks-X.Y.Z.zip` (allow-list of the files
     GLPI needs: no `vendor/`, tests, tools or development files) and attaches
-    it to every pull request run.
+    it to every pull request run. The build job is read-only; a separate
+    publish job (tags only) checks the archive's sha256 and creates the
+    release;
+  - actions are pinned to commit SHAs; Dependabot (`.github/dependabot.yml`)
+    proposes updates monthly.
 - **Releasing a version**:
   1. bump `PLUGIN_OFFICELINKS_VERSION` in `setup.php` (GLPI then offers
      "Upgrade", and the number busts the browser cache of the JavaScript and

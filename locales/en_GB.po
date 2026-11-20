@@ -7,15 +7,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/DocumentHooks.php:345
+#: src/DocumentHooks.php:364
 msgid "\"..\" is not allowed in the path"
 msgstr ""
 
-#: src/PluginConfig.php:64
+#: front/config.form.php:68
+msgid "%1$s (ignored entries: %2$d)"
+msgstr ""
+
+#: src/PluginConfig.php:74
 msgid "%1$s, line %2$d: %3$s (%4$s)"
 msgstr ""
 
-#: src/PluginConfig.php:47 templates/config.html.twig:55
+#: front/config.form.php:62 src/PluginConfig.php:57 templates/config.html.twig:66
 msgid "Allowed roots"
 msgstr ""
 
@@ -27,15 +31,15 @@ msgstr ""
 msgid "Copy path"
 msgstr ""
 
-#: templates/config.html.twig:87
+#: templates/config.html.twig:98
 msgid "Displays a \"Show in File Explorer\" button on documents, which opens the folder containing the file with the file selected (file:// link). Disabled by default: it requires the Microsoft Edge policy IntranetFileLinksEnabled on workstations, GLPI served over HTTPS, and GLPI and the file share in the Local intranet zone."
 msgstr ""
 
-#: src/PluginConfig.php:48 templates/config.html.twig:67
+#: front/config.form.php:63 src/PluginConfig.php:58 templates/config.html.twig:78
 msgid "Drive letter mappings"
 msgstr ""
 
-#: src/PluginConfig.php:49 templates/config.html.twig:79
+#: front/config.form.php:64 src/PluginConfig.php:59 templates/config.html.twig:90
 msgid "Host aliases"
 msgstr ""
 
@@ -43,7 +47,7 @@ msgstr ""
 msgid "Installed version: %s"
 msgstr ""
 
-#: hook.php:95 templates/document_field.html.twig:71
+#: hook.php:108 templates/document_field.html.twig:71
 msgid "Network path"
 msgstr ""
 
@@ -51,15 +55,15 @@ msgstr ""
 msgid "Network path actions"
 msgstr ""
 
-#: src/DocumentHooks.php:325
+#: src/DocumentHooks.php:344
 msgid "Network path rejected: %1$s (%2$s)"
 msgstr ""
 
-#: templates/config.html.twig:44
+#: templates/config.html.twig:55
 msgid "No allowed root is configured: network paths cannot be saved on documents."
 msgstr ""
 
-#: front/config.form.php:59
+#: front/config.form.php:71
 msgid "OfficeLinks"
 msgstr ""
 
@@ -71,15 +75,15 @@ msgstr ""
 msgid "OfficeLinks configuration"
 msgstr ""
 
-#: templates/config.html.twig:51
+#: templates/config.html.twig:62
 msgid "One UNC root per line. Only files located under one of these roots can be linked to a document. Matching is case-insensitive and done folder by folder."
 msgstr ""
 
-#: templates/config.html.twig:75
+#: templates/config.html.twig:86
 msgid "One alias per line: target server path = DFS namespace path. Paths entered with the target server are rewritten to the DFS namespace."
 msgstr ""
 
-#: templates/config.html.twig:63
+#: templates/config.html.twig:74
 msgid "One mapping per line: drive letter = UNC path. Paths entered with this drive letter are translated to the UNC path."
 msgstr ""
 
@@ -87,7 +91,7 @@ msgstr ""
 msgid "Open in %s"
 msgstr ""
 
-#: src/DocumentHooks.php:157
+#: src/DocumentHooks.php:161
 msgid "Opens with %s."
 msgstr ""
 
@@ -103,15 +107,19 @@ msgstr ""
 msgid "Show in File Explorer"
 msgstr ""
 
-#: templates/config.html.twig:90
+#: templates/config.html.twig:101
 msgid "Show the \"Show in File Explorer\" button"
+msgstr ""
+
+#: templates/config.html.twig:44
+msgid "Some stored entries are invalid and are ignored. They will be removed the next time this configuration is saved."
 msgstr ""
 
 #: templates/config.html.twig:33
 msgid "The configuration was not saved. Please fix the following lines:"
 msgstr ""
 
-#: src/DocumentHooks.php:156
+#: src/DocumentHooks.php:160
 msgid "The network path will be removed when the document is saved."
 msgstr ""
 
@@ -119,7 +127,7 @@ msgstr ""
 msgid "The saved path is no longer allowed (%s): opening links are disabled."
 msgstr ""
 
-#: src/DocumentHooks.php:155
+#: src/DocumentHooks.php:159
 msgid "This path will be rejected:"
 msgstr ""
 
@@ -131,74 +139,74 @@ msgstr ""
 msgid "Unable to copy the path. Select it and press Ctrl+C."
 msgstr ""
 
-#: src/DocumentHooks.php:154
+#: src/DocumentHooks.php:158
 msgid "Will be saved as:"
 msgstr ""
 
-#: src/DocumentHooks.php:343
+#: src/DocumentHooks.php:362
 msgid "\\\\?\\ and \\\\.\\ paths are not allowed"
 msgstr ""
 
-#: src/DocumentHooks.php:342
+#: src/DocumentHooks.php:361
 msgid "a UNC path (\\\\server\\share\\...) or a mapped drive letter is expected"
 msgstr ""
 
-#: src/PluginConfig.php:57
+#: src/PluginConfig.php:67
 msgid "already defined on a previous line"
 msgstr ""
 
-#: src/PluginConfig.php:56
+#: src/PluginConfig.php:66
 msgid "expected format: source = target"
 msgstr ""
 
-#: src/PluginConfig.php:54
+#: src/PluginConfig.php:64
 msgid "invalid UNC path (\\\\server\\share expected)"
 msgstr ""
 
-#: src/PluginConfig.php:55
+#: src/PluginConfig.php:65
 msgid "invalid drive letter (A: to Z: expected)"
 msgstr ""
 
-#: src/DocumentHooks.php:348
+#: src/DocumentHooks.php:367
 msgid "no allowed root is configured, contact your administrator"
 msgstr ""
 
-#: src/PluginConfig.php:59
+#: src/PluginConfig.php:69
 msgid "source and target are identical"
 msgstr ""
 
-#: src/PluginConfig.php:58
+#: src/PluginConfig.php:68
 msgid "target is not under an allowed root"
 msgstr ""
 
-#: src/DocumentHooks.php:346
+#: src/DocumentHooks.php:365
 msgid "the path contains a character forbidden by Windows"
 msgstr ""
 
-#: src/DocumentHooks.php:341
+#: src/DocumentHooks.php:360
 msgid "the path contains control characters"
 msgstr ""
 
-#: src/DocumentHooks.php:340
+#: src/DocumentHooks.php:359
 msgid "the path contains invalid characters"
 msgstr ""
 
-#: src/DocumentHooks.php:338
+#: src/DocumentHooks.php:357
 msgid "the path is empty"
 msgstr ""
 
-#: src/DocumentHooks.php:349
+#: src/DocumentHooks.php:368
 msgid "the path is outside the allowed roots"
 msgstr ""
 
-#: src/DocumentHooks.php:339
+#: src/DocumentHooks.php:358
 msgid "the path is too long"
 msgstr ""
 
-#: src/DocumentHooks.php:347
+#: src/DocumentHooks.php:366
 msgid "the path must designate a file, not a folder"
 msgstr ""
 
-#: src/DocumentHooks.php:344
+#: src/DocumentHooks.php:363
 msgid "this drive letter is not configured"
 msgstr ""

@@ -247,3 +247,14 @@ Sans `'itemtype'`, l'affichage de la colonne lève `TypeError: DbUtils::getClass
 | `CacheManager::resetAllCaches(): bool` | `src/Glpi/Cache/CacheManager.php:315` (supprime `templates/*/*.php`) | `:313` | Non utilisée (vide aussi le cache Symfony) ; en 11, le plugin reproduit seulement la suppression des templates. |
 | `Glpi\Kernel\Kernel::getCacheRootDir(): string` | `src/Glpi/Kernel/Kernel.php:91` | `:95` | Dossier des templates compilés : `getCacheRootDir() . '/templates'` (11 : `TemplateRenderer.php:92` ; 12 : `InitializeTwigEnvironment.php:94`). |
 | Liens « Page d'accueil / Aide / Lisez-moi » de la page des plugins | `src/Glpi/Marketplace/View.php:262-266` | idem | Fournis **uniquement** par l'API de la marketplace (`$apidata`) : impossibles pour un plugin non publié. Seuls `logo.png` (`:248`) et `homepage` de `plugin_version_*()` (vue liste, `src/Plugin.php:3010`) sont locaux. |
+
+## Corrections de l'audit de sécurité (avant v1.0.0)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| Comparaison des colonnes dans `CommonDBTM::update()` | `src/CommonDBTM.php:1693-1745` (`datetime` : `$this->fields[$key] != $this->input[$key]`) | `:1712-1764` | = ; si `date_mod` vaut déjà l'heure courante, le plugin vide `$item->fields['date_mod']` (chaîne vide) : la colonne est vue comme modifiée et réécrite à l'identique, sans historique (`history_blacklist`). |
+| `CommonDBTM::updateInDB()` | `src/CommonDBTM.php:719`, `return ($affected_rows >= 0)` `:754` | `:718`, `:753` | = ; vrai même si la ligne n'a pas changé : `item_update` est donc appelé. Le chemin n'est plus enregistré dans `pre_item_update` (il l'était avant la vérification de la mise à jour). |
+| `Document::canCreate()` | `src/Document.php:130` : `document` CREATE **ou** `followup` ADDMY | `:144` : idem | Le champ (et la configuration envoyée à l'aperçu) d'un nouveau document exige `Session::haveRight(Document::$rightname, CREATE)`. |
+| `Document::$rightname` | `public static $rightname = 'document'` (`:77`) | `public static string $rightname` (`:92`) | = (lecture seule de la valeur). |
+| `Glpi\DBAL\QuerySubQuery(array $crit, $alias = null)` | `src/Glpi/DBAL/QuerySubQuery.php:55` | `:54` | = ; `['NOT' => ['documents_id' => new QuerySubQuery(...)]]` → `NOT (documents_id IN (SELECT ...))` (`src/DBmysqlIterator.php:574`, `:625` ; 12 : `:607`, `:658`). Nettoyage des chemins orphelins à l'installation. |
+| `$DB->delete($table, $where, array $joins = [])` | `src/DBmysql.php:1603` | `:1573` | = |

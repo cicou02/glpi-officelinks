@@ -46,9 +46,13 @@ final class DocumentHooks
 
         $id      = $item->isNewItem() ? 0 : (int) $item->getID();
         $path    = $id > 0 ? DocumentPath::get($id) : null;
+        // Nouveau document : droit « document » en création exigé.
+        // Document::canCreate() est vrai aussi avec le seul droit d'ajout de
+        // suivi (ITILFollowup::ADDMY) ; ces utilisateurs ne voient pas le champ
+        // ni la configuration (racines, lecteurs, alias) envoyée à l'aperçu.
         $canedit = $id > 0
             ? Document::canUpdate() && $item->canUpdateItem()
-            : Document::canCreate();
+            : Session::haveRight(Document::$rightname, CREATE);
 
         if (!$canedit && $path === null) {
             return;
@@ -174,8 +178,8 @@ final class DocumentHooks
      *
      * CommonDBTM::update() ne déclenche item_update que si une colonne de
      * glpi_documents change. Quand seul le chemin change, on met donc à jour
-     * date_mod (sans l'historiser) ; si date_mod vaut déjà l'heure courante
-     * (deux enregistrements dans la même seconde), on enregistre tout de suite.
+     * date_mod (sans l'historiser). Le chemin n'est enregistré que dans
+     * item_update, c'est-à-dire seulement si GLPI accepte toute la mise à jour.
      *
      * Un chemin enregistré mais devenu invalide (racine retirée de la
      * configuration) reste en place tant qu'il n'est pas modifié ou vidé.
@@ -206,17 +210,32 @@ final class DocumentHooks
             return;
         }
 
-        $now = $_SESSION['glpi_currenttime'] ?? null;
-        if (is_string($now) && ($item->fields['date_mod'] ?? null) !== $now) {
-            $item->input['date_mod'] = $now;
-            if (!in_array('date_mod', $item->history_blacklist, true)) {
-                $item->history_blacklist[] = 'date_mod';
-            }
-            return;
-        }
+        self::forceUpdateHook($item);
+    }
 
-        self::persist($item, $new);
-        unset($item->input[self::FIELD]);
+    /**
+     * Garantit que CommonDBTM::update() verra au moins une colonne modifiée,
+     * et donc déclenchera item_update, sans historiser date_mod.
+     *
+     * Si date_mod vaut déjà l'heure courante (deux enregistrements dans la
+     * même seconde), la copie en mémoire $item->fields['date_mod'] est vidée
+     * (chaîne vide et non null, pour que les isset() du cœur restent vrais) :
+     * la comparaison de CommonDBTM::update() détecte alors un changement et
+     * réécrit la même valeur. updateInDB() renvoie vrai même si aucune ligne
+     * n'est modifiée (affected_rows >= 0), donc item_update est bien appelé.
+     * Vérifié dans CommonDBTM::update()/updateInDB() en 11.0.8 et 12.0.1
+     * (voir docs/compat.md).
+     */
+    private static function forceUpdateHook(Document $item): void
+    {
+        $now = $_SESSION['glpi_currenttime'] ?? date('Y-m-d H:i:s');
+        $item->input['date_mod'] = $now;
+        if (!in_array('date_mod', $item->history_blacklist, true)) {
+            $item->history_blacklist[] = 'date_mod';
+        }
+        if (($item->fields['date_mod'] ?? null) === $now) {
+            $item->fields['date_mod'] = '';
+        }
     }
 
     /**

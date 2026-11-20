@@ -50,7 +50,8 @@ tools/               outils de développement (traductions : php tools/locales.p
 tests/               PHPUnit (normalisation, validation, encodage)
 docs/compat.md
 README.md (anglais) README.fr.md CHANGELOG.md LICENSE (GPL-3.0-or-later)
-.github/workflows/   tests.yml (php -l, PHPUnit, Node), release.yml (archive sur tag vX.Y.Z)
+.github/workflows/   tests.yml (php -l, PHPUnit, Node), release.yml (archive ; publication sur tag vX.Y.Z dans un job séparé)
+.github/dependabot.yml  mises à jour des actions (épinglées par SHA)
 ```
 
 ## Données
@@ -82,7 +83,7 @@ Une seule logique, dans une **classe PHP pure sans dépendance à GLPI** (testab
 2. Accepter `\\hôte\...`, `//hôte/...`, `file://hôte/...` (avec décodage des `%XX`), et les lettres de lecteur traduites via `drive_mappings`. `host_aliases` ramène un serveur cible vers l'espace de noms DFS.
 3. Uniformiser les séparateurs en `\`, fusionner les doublons, retirer les segments `.`, **rejeter** tout segment `..` (y compris sous forme encodée).
 4. La racine doit correspondre à une entrée de `allowed_roots`, sans tenir compte de la casse et **segment par segment** : `\\h\DFS-evil` ne correspond pas à `\\h\DFS`. Réécrire la racine avec la casse de la configuration.
-5. Refuser : chemin non UNC, préfixes `\\?\` et `\\.\`, caractères de contrôle, longueur supérieure à 1024, chemin de dossier (v1 = fichiers uniquement).
+5. Refuser : chemin non UNC, préfixes `\\?\` et `\\.\`, caractères de contrôle et de mise en forme invisibles (Unicode Cc, Cf, Zl, Zp), caractères interdits par Windows et `¥ ₩ ∕ ∖`, longueur supérieure à 1024, chemin de dossier (v1 = fichiers uniquement).
 6. Si `allowed_roots` est vide, **refuser tout enregistrement** (jamais « tout accepter »).
 
 ## Génération des liens (à l'affichage)

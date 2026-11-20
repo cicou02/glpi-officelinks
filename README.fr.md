@@ -302,7 +302,11 @@ l'aperçu JavaScript aux résultats de `PathNormalizer`, qui fait foi.
     8.4, à chaque pull request et à chaque push sur `main` ;
   - `release.yml` : construit `officelinks-X.Y.Z.zip` (liste blanche des
     fichiers utiles à GLPI : ni `vendor/`, ni tests, ni outils, ni fichiers de
-    développement) et le joint au run de chaque pull request.
+    développement) et le joint au run de chaque pull request. Le job de
+    construction est en lecture seule ; un job de publication distinct
+    (tags uniquement) vérifie le sha256 de l'archive et crée la release ;
+  - les actions sont épinglées par SHA de commit ; Dependabot
+    (`.github/dependabot.yml`) propose les mises à jour chaque mois.
 - **Publication d'une version** :
   1. augmenter `PLUGIN_OFFICELINKS_VERSION` dans `setup.php` (GLPI propose
      alors « Mettre à jour », et le numéro invalide le cache navigateur du

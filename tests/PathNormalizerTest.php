@@ -231,6 +231,13 @@ final class PathNormalizerTest extends TestCase
         yield '%0A dans file://' => ['file://internal.example.com/DFS/Informatique/a%0A.docx', InvalidPathException::CONTROL_CHAR];
         yield 'contrôle C1' => [self::INFO . "\\a\u{0085}.docx", InvalidPathException::CONTROL_CHAR];
         yield 'RLO (extension maquillée)' => [self::INFO . "\\facture\u{202E}xcod.exe", InvalidPathException::CONTROL_CHAR];
+        yield 'ALM U+061C (Cf)' => [self::INFO . "\\facture\u{061C}.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'espace sans chasse U+200B' => [self::INFO . "\\a\u{200B}b.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'BOM U+FEFF' => [self::INFO . "\\\u{FEFF}a.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'trait d\'union conditionnel U+00AD' => [self::INFO . "\\a\u{00AD}b.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'séparateur de ligne U+2028' => [self::INFO . "\\a\u{2028}b.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'séparateur de paragraphe U+2029' => [self::INFO . "\\a\u{2029}b.docx", InvalidPathException::CONTROL_CHAR];
+        yield 'U+200B encodé dans file://' => ['file://internal.example.com/DFS/Informatique/a%E2%80%8B.docx', InvalidPathException::CONTROL_CHAR];
         yield 'UTF-8 invalide' => [self::INFO . "\\a\xFF.docx", InvalidPathException::INVALID_ENCODING];
         yield '%FF dans file://' => ['file://internal.example.com/DFS/Informatique/a%FF.docx', InvalidPathException::INVALID_ENCODING];
         yield 'flux de données alternatif' => [self::INFO . '\\a.docx:Zone.Identifier', InvalidPathException::FORBIDDEN_CHAR];
@@ -239,6 +246,10 @@ final class PathNormalizerTest extends TestCase
         yield 'joker ?' => [self::INFO . '\\a?.docx', InvalidPathException::FORBIDDEN_CHAR];
         yield 'chevrons' => [self::INFO . '\\<script>.docx', InvalidPathException::FORBIDDEN_CHAR];
         yield 'barre verticale' => [self::INFO . '\\a|b.docx', InvalidPathException::FORBIDDEN_CHAR];
+        yield 'yen (best fit cp932)' => [self::INFO . "\\\u{00A5}..\u{00A5}a.docx", InvalidPathException::FORBIDDEN_CHAR];
+        yield 'won (best fit cp949)' => [self::INFO . "\\a\u{20A9}b.docx", InvalidPathException::FORBIDDEN_CHAR];
+        yield 'barre de division U+2215' => [self::INFO . "\\a\u{2215}b.docx", InvalidPathException::FORBIDDEN_CHAR];
+        yield 'différence ensembliste U+2216' => [self::INFO . "\\a\u{2216}b.docx", InvalidPathException::FORBIDDEN_CHAR];
         yield 'guillemet interne' => [self::INFO . '\\a"b.docx', InvalidPathException::FORBIDDEN_CHAR];
         yield 'point final de dossier' => [self::INFO . '\\dossier.\\a.docx', InvalidPathException::FORBIDDEN_CHAR];
         yield 'espace final de fichier' => [self::INFO . "\\a.docx \\b.docx", InvalidPathException::FORBIDDEN_CHAR];
