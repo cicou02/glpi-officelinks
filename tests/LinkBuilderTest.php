@@ -27,18 +27,12 @@ final class LinkBuilderTest extends TestCase
         );
     }
 
-    public function testReadOnlyMode(): void
+    public function testExcelUri(): void
     {
         $this->assertSame(
-            'ms-excel:ofv|u|file://internal.example.com/DFS/Informatique/Info/Docs/Linux/a.xlsx',
-            LinkBuilder::officeUri(self::DIR . '\\a.xlsx', LinkBuilder::MODE_VIEW)
+            'ms-excel:ofe|u|file://internal.example.com/DFS/Informatique/Info/Docs/Linux/a.xlsx',
+            LinkBuilder::officeUri(self::DIR . '\\a.xlsx')
         );
-    }
-
-    public function testUnknownModeIsRejected(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        LinkBuilder::officeUri(self::DIR . '\\a.docx', 'xyz');
     }
 
     /**

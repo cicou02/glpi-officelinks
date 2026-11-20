@@ -23,11 +23,15 @@ use InvalidArgumentException;
  */
 final class LinkBuilder
 {
-    /** Ouverture en édition. */
+    /**
+     * Commande Office « ouvrir en édition ».
+     *
+     * La commande « ofv » (lecture seule) n'est pas utilisée : la
+     * spécification Office URI Schemes ne la prévoit que pour des URI
+     * http(s) ; pour un fichier file:// du DFS, Office l'ignore et ouvre en
+     * édition (constaté sur le parc).
+     */
     public const MODE_EDIT = 'ofe';
-
-    /** Ouverture en lecture seule. */
-    public const MODE_VIEW = 'ofv';
 
     /**
      * @var array<string, array{application: string, icon: string, scheme: string, extensions: list<string>}>
@@ -82,21 +86,18 @@ final class LinkBuilder
     }
 
     /**
-     * URI Office (ms-word:ofe|u|file://...), ou null pour un type non Office.
+     * URI Office d'ouverture en édition (ms-word:ofe|u|file://...), ou null
+     * pour un type non Office.
      *
      * @param string $canonical Chemin renvoyé par PathNormalizer::normalize().
-     * @param string $mode      MODE_EDIT ou MODE_VIEW.
      */
-    public static function officeUri(string $canonical, string $mode = self::MODE_EDIT): ?string
+    public static function officeUri(string $canonical): ?string
     {
-        if ($mode !== self::MODE_EDIT && $mode !== self::MODE_VIEW) {
-            throw new InvalidArgumentException('Unknown Office URI mode.');
-        }
         $type = self::officeType($canonical);
         if ($type === null) {
             return null;
         }
-        return $type['scheme'] . ':' . $mode . '|u|' . PathNormalizer::toFileUri($canonical);
+        return $type['scheme'] . ':' . self::MODE_EDIT . '|u|' . PathNormalizer::toFileUri($canonical);
     }
 
     /**

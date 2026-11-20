@@ -80,7 +80,6 @@ final class DocumentHooks
      *     application: ?string,
      *     icon: string,
      *     edit_uri: ?string,
-     *     view_uri: ?string,
      *     folder_uri: ?string
      * }
      */
@@ -93,7 +92,6 @@ final class DocumentHooks
             'application' => null,
             'icon'        => 'ti-file',
             'edit_uri'    => null,
-            'view_uri'    => null,
             'folder_uri'  => null,
         ];
 
@@ -109,8 +107,7 @@ final class DocumentHooks
         if ($type !== null) {
             $links['application'] = $type['application'];
             $links['icon']        = $type['icon'];
-            $links['edit_uri']    = LinkBuilder::officeUri($canonical, LinkBuilder::MODE_EDIT);
-            $links['view_uri']    = LinkBuilder::officeUri($canonical, LinkBuilder::MODE_VIEW);
+            $links['edit_uri']    = LinkBuilder::officeUri($canonical);
         }
         if ($settings->enableFileLinks) {
             $links['folder_uri'] = LinkBuilder::folderUri($canonical);

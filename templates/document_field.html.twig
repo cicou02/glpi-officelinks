@@ -34,11 +34,6 @@
                                 <i class="ti {{ links.icon }} me-1" aria-hidden="true"></i>
                                 {{ __('Open in %s', 'officelinks')|format(links.application) }}
                             </a>
-                            <a class="btn btn-sm btn-outline-secondary" href="{{ links.view_uri }}"
-                               title="{{ links.file_name }}">
-                                <i class="ti ti-eye me-1" aria-hidden="true"></i>
-                                {{ __('Read-only', 'officelinks') }}
-                            </a>
                         {% endif %}
 
                         <button type="button" class="btn btn-sm btn-outline-secondary"

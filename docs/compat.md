@@ -195,3 +195,10 @@ La classe n'utilise aucune API du cœur de GLPI.
 |---|---|---|---|
 | `Environment::shouldExpectResourcesToChange()` | `src/Glpi/Application/Environment.php:207` | `src/Glpi/Application/Environment.php:197` | `false` en production/staging si GLPI n'est pas une copie git : Twig `auto_reload` désactivé (11 `src/Glpi/Application/View/TemplateRenderer.php:88`, 12 `src/Glpi/Kernel/Listener/PostBootListener/InitializeTwigEnvironment.php:84`). Un template de plugin modifié n'est pas recompilé → `php bin/console cache:clear` après chaque mise à jour. |
 | `Plugin::getPluginFilesVersion()` (paramètre `?v=` des JS/CSS) | `src/Plugin.php:1965` | `src/Plugin.php:1961` | = ; renvoie la version du plugin : l'augmenter à chaque publication pour invalider le cache navigateur. |
+
+## Office URI Schemes (référence Microsoft)
+
+Source : <https://learn.microsoft.com/en-us/office/client-developer/office-uri-schemes>.
+
+- Section 1.3 : « Currently only URIs based on the http or https scheme are supported. » Avec `file://`, `ofe` fonctionne sur le parc mais **`ofv` (lecture seule) est ignoré** : bouton « Lecture seule » retiré (décision du 2026-11-20).
+- Section 1.7 : « the maximum path length is 256 characters for all apps except Excel, where the limit is 216. » Un chemin plus long est accepté par le plugin (limite 1024) mais peut ne pas s'ouvrir dans Office.

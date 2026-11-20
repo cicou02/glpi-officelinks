@@ -103,7 +103,7 @@ ms-word:ofe|u|file://internal.example.com/DFS/Informatique/Info/Docs/Linux/Insta
 | autres (pdf, html, txt, images…) | — | pas d'URI |
 
 - Boutons :
-  - « Ouvrir dans <Application> » (`ofe`) et « Lecture seule » (`ofv`) pour les types Office ;
+  - « Ouvrir dans <Application> » (`ofe`) pour les types Office. **Pas de bouton « Lecture seule » (`ofv`)** : la spécification *Office URI Schemes* ne prévoit `ofv` que pour des URI http(s) ; avec `file://`, Office l'ignore et ouvre en édition (constaté sur le parc, décision du 2026-11-20) ;
   - « Copier le chemin » (`navigator.clipboard`, chemin UNC brut) pour tous les types ;
   - si `enable_file_links` est activé : « Afficher dans l'Explorateur » (lien `file://` ; nécessite la stratégie Edge `IntranetFileLinksEnabled` sur les postes).
 - Échappement Twig par défaut. Jamais de filtre `|raw` sur une valeur issue de la saisie.
