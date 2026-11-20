@@ -1,0 +1,41 @@
+{
+    "name": "cicou02/glpi-officelinks",
+    "description": "GLPI plugin: UNC network path on Document items with native Office open links.",
+    "type": "glpi-plugin",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=8.2",
+        "ext-intl": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "GlpiPlugin\\Officelinks\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GlpiPlugin\\Officelinks\\Tests\\": "tests/",
+            "GlpiPlugin\\Officelinks\\Tools\\": "tools/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "8.2.0"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": [
+            "phpunit",
+            "node --test tests/js/officelinks.test.js"
+        ],
+        "test-php": "phpunit",
+        "test-js": "node --test tests/js/officelinks.test.js",
+        "locales": "php tools/locales.php"
+    }
+}

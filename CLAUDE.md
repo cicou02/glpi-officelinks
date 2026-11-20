@@ -46,9 +46,12 @@ templates/           Twig, espace de noms @officelinks
 public/js/ public/css/
 front/config.form.php
 locales/             domaine gettext `officelinks`, source en anglais, traduction fr_FR
+tools/               outils de développement (traductions : php tools/locales.php)
 tests/               PHPUnit (normalisation, validation, encodage)
 docs/compat.md
-README.md CHANGELOG.md LICENSE (GPL-3.0-or-later)
+README.md (anglais) README.fr.md CHANGELOG.md LICENSE (GPL-3.0-or-later)
+.github/workflows/   tests.yml (php -l, PHPUnit, Node), release.yml (archive ; publication sur tag vX.Y.Z dans un job séparé)
+.github/dependabot.yml  mises à jour des actions (épinglées par SHA)
 ```
 
 ## Données
@@ -80,7 +83,7 @@ Une seule logique, dans une **classe PHP pure sans dépendance à GLPI** (testab
 2. Accepter `\\hôte\...`, `//hôte/...`, `file://hôte/...` (avec décodage des `%XX`), et les lettres de lecteur traduites via `drive_mappings`. `host_aliases` ramène un serveur cible vers l'espace de noms DFS.
 3. Uniformiser les séparateurs en `\`, fusionner les doublons, retirer les segments `.`, **rejeter** tout segment `..` (y compris sous forme encodée).
 4. La racine doit correspondre à une entrée de `allowed_roots`, sans tenir compte de la casse et **segment par segment** : `\\h\DFS-evil` ne correspond pas à `\\h\DFS`. Réécrire la racine avec la casse de la configuration.
-5. Refuser : chemin non UNC, préfixes `\\?\` et `\\.\`, caractères de contrôle, longueur supérieure à 1024, chemin de dossier (v1 = fichiers uniquement).
+5. Refuser : chemin non UNC, préfixes `\\?\` et `\\.\`, caractères de contrôle et de mise en forme invisibles (Unicode Cc, Cf, Zl, Zp), caractères interdits par Windows et `¥ ₩ ∕ ∖`, longueur supérieure à 1024, chemin de dossier (v1 = fichiers uniquement).
 6. Si `allowed_roots` est vide, **refuser tout enregistrement** (jamais « tout accepter »).
 
 ## Génération des liens (à l'affichage)
@@ -103,9 +106,9 @@ ms-word:ofe|u|file://internal.example.com/DFS/Informatique/Info/Docs/Linux/Insta
 | autres (pdf, html, txt, images…) | — | pas d'URI |
 
 - Boutons :
-  - « Ouvrir dans <Application> » (`ofe`) et « Lecture seule » (`ofv`) pour les types Office ;
+  - « Ouvrir dans <Application> » (`ofe`) pour les types Office. **Pas de bouton « Lecture seule » (`ofv`)** : la spécification *Office URI Schemes* ne prévoit `ofv` que pour des URI http(s) ; avec `file://`, Office l'ignore et ouvre en édition (constaté sur le parc, décision du 2026-11-20) ;
   - « Copier le chemin » (`navigator.clipboard`, chemin UNC brut) pour tous les types ;
-  - si `enable_file_links` est activé : « Afficher dans l'Explorateur » (lien `file://` ; nécessite la stratégie Edge `IntranetFileLinksEnabled` sur les postes).
+  - si `enable_file_links` est activé : « Afficher dans l'Explorateur » (lien `file://` **vers le fichier** : avec la stratégie Edge `IntranetFileLinksEnabled`, l'Explorateur s'ouvre sur son dossier, fichier sélectionné ; GLPI doit être en HTTPS et en zone Intranet local).
 - Échappement Twig par défaut. Jamais de filtre `|raw` sur une valeur issue de la saisie.
 
 ## Sécurité — non négociable

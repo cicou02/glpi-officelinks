@@ -1,0 +1,27 @@
+/**
+ * OfficeLinks — plugin GLPI.
+ *
+ * @license GPL-3.0-or-later
+ */
+
+/* Boutons sous le champ « Chemin réseau » */
+.officelinks-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Les chemins UNC sont longs : retour à la ligne n'importe où */
+.officelinks-preview code,
+.officelinks-alert {
+    word-break: break-all;
+}
+
+.officelinks-preview code {
+    white-space: normal;
+}
+
+.officelinks-feedback:empty {
+    display: none;
+}

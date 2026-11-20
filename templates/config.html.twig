@@ -1,0 +1,114 @@
+{#
+ # OfficeLinks — page de configuration.
+ # Le <form> est ouvert et fermé par front/config.form.php (Html::closeForm()).
+ # Échappement Twig par défaut : aucune valeur saisie n'est affichée avec |raw.
+ #}
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="ti ti-file-symlink me-2" aria-hidden="true"></i>
+            {{ __('OfficeLinks configuration', 'officelinks') }}
+        </h2>
+    </div>
+
+    <div class="card-body">
+        {# Rempli par public/js/officelinks.js si une version plus récente est publiée sur GitHub. #}
+        <div class="alert alert-info d-none" role="status"
+             data-officelinks-update-check
+             data-officelinks-version="{{ update_check.version }}"
+             data-officelinks-api-url="{{ update_check.api_url }}"
+             data-officelinks-releases-url="{{ update_check.releases_url }}"
+             data-officelinks-message="{{ __('OfficeLinks %1$s is available (installed version: %2$s).', 'officelinks') }}"
+             data-officelinks-link-label="{{ __('See the release', 'officelinks') }}">
+        </div>
+
+        <p class="text-muted small mb-3">
+            {{ __('Installed version: %s', 'officelinks')|format(update_check.version) }}
+        </p>
+
+        {% if errors is not empty %}
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-title">{{ __('The configuration was not saved. Please fix the following lines:', 'officelinks') }}</h4>
+                <ul class="mb-0">
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if ignored is not empty %}
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-title">{{ __('Some stored entries are invalid and are ignored. They will be removed the next time this configuration is saved.', 'officelinks') }}</h4>
+                <ul class="mb-0">
+                    {% for line in ignored %}
+                        <li>{{ line }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if form.allowed_roots is empty %}
+            <div class="alert alert-warning" role="alert">
+                {{ __('No allowed root is configured: network paths cannot be saved on documents.', 'officelinks') }}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            {% set roots_help %}
+                <div class="form-text">
+                    {{ __('One UNC root per line. Only files located under one of these roots can be linked to a document. Matching is case-insensitive and done folder by folder.', 'officelinks') }}
+                    <br><code>\\internal.example.com\DFS\Informatique</code>
+                </div>
+            {% endset %}
+            {{ fields.textareaField('allowed_roots', form.allowed_roots, __('Allowed roots', 'officelinks'), {
+                'full_width': true,
+                'rows': 4,
+                'add_field_html': roots_help,
+            }) }}
+
+            {% set drives_help %}
+                <div class="form-text">
+                    {{ __('One mapping per line: drive letter = UNC path. Paths entered with this drive letter are translated to the UNC path.', 'officelinks') }}
+                    <br><code>I: = \\internal.example.com\DFS\Informatique</code>
+                </div>
+            {% endset %}
+            {{ fields.textareaField('drive_mappings', form.drive_mappings, __('Drive letter mappings', 'officelinks'), {
+                'full_width': true,
+                'rows': 4,
+                'add_field_html': drives_help,
+            }) }}
+
+            {% set aliases_help %}
+                <div class="form-text">
+                    {{ __('One alias per line: target server path = DFS namespace path. Paths entered with the target server are rewritten to the DFS namespace.', 'officelinks') }}
+                    <br><code>\\srv-files01\Informatique$ = \\internal.example.com\DFS\Informatique</code>
+                </div>
+            {% endset %}
+            {{ fields.textareaField('host_aliases', form.host_aliases, __('Host aliases', 'officelinks'), {
+                'full_width': true,
+                'rows': 4,
+                'add_field_html': aliases_help,
+            }) }}
+
+            {% set file_links_help %}
+                <div class="form-text">
+                    {{ __('Displays a "Show in File Explorer" button on documents, which opens the folder containing the file with the file selected (file:// link). Disabled by default: it requires the Microsoft Edge policy IntranetFileLinksEnabled on workstations, GLPI served over HTTPS, and GLPI and the file share in the Local intranet zone.', 'officelinks') }}
+                </div>
+            {% endset %}
+            {{ fields.checkboxField('enable_file_links', file_links, __('Show the "Show in File Explorer" button', 'officelinks'), {
+                'full_width': true,
+                'add_field_html': file_links_help,
+            }) }}
+        </div>
+    </div>
+
+    <div class="card-footer text-end">
+        <button type="submit" name="update" value="1" class="btn btn-primary">
+            <i class="ti ti-device-floppy me-1" aria-hidden="true"></i>
+            {{ _x('button', 'Save') }}
+        </button>
+    </div>
+</div>

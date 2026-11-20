@@ -1,0 +1,372 @@
+<?php
+
+/**
+ * OfficeLinks — plugin GLPI.
+ *
+ * @license GPL-3.0-or-later
+ * @link    https://github.com/cicou02/glpi-officelinks
+ */
+
+namespace GlpiPlugin\Officelinks;
+
+use Document;
+use Glpi\Application\View\TemplateRenderer;
+use Log;
+use Session;
+
+/**
+ * Hooks de la fiche Document : champ « Chemin réseau », validation,
+ * persistance et purge.
+ *
+ * Aucune sous-classe de CommonDBTM : les méthodes reçoivent l'objet Document
+ * transmis par Plugin::doHook().
+ */
+final class DocumentHooks
+{
+    /**
+     * Nom du champ du formulaire. Le préfixe « _ » garantit que GLPI ne
+     * l'écrit jamais dans glpi_documents (CommonDBTM::add()/update()).
+     */
+    public const FIELD = '_officelinks_path';
+
+    /**
+     * post_item_form : affiche le champ sur la fiche Document uniquement.
+     *
+     * Appel standard (non indexé par type) : reçoit
+     * ['item' => CommonGLPI, 'options' => array].
+     *
+     * @param mixed $params
+     */
+    public static function showField($params): void
+    {
+        $item = is_array($params) ? ($params['item'] ?? null) : null;
+        if (!$item instanceof Document) {
+            return;
+        }
+
+        $id      = $item->isNewItem() ? 0 : (int) $item->getID();
+        $path    = $id > 0 ? DocumentPath::get($id) : null;
+        // Nouveau document : droit « document » en création exigé.
+        // Document::canCreate() est vrai aussi avec le seul droit d'ajout de
+        // suivi (ITILFollowup::ADDMY) ; ces utilisateurs ne voient pas le champ
+        // ni la configuration (racines, lecteurs, alias) envoyée à l'aperçu.
+        $canedit = $id > 0
+            ? Document::canUpdate() && $item->canUpdateItem()
+            : Session::haveRight(Document::$rightname, CREATE);
+
+        if (!$canedit && $path === null) {
+            return;
+        }
+
+        $settings = PluginConfig::load();
+
+        TemplateRenderer::getInstance()->display('@officelinks/document_field.html.twig', [
+            'field'      => self::FIELD,
+            'path'       => $path ?? '',
+            'canedit'    => $canedit,
+            'max_length' => PathNormalizer::MAX_LENGTH,
+            'links'      => $path === null ? null : self::buildLinks($path, $settings),
+            'js_config'  => $canedit ? self::jsConfig($settings) : null,
+        ]);
+    }
+
+    /**
+     * Liens et boutons pour un chemin enregistré.
+     *
+     * Le chemin est revalidé avec la configuration courante : si sa racine a
+     * été retirée, aucun lien d'ouverture n'est généré (un chemin UNC hors
+     * racine dans un lien ms-word: peut faire fuiter le hash NetNTLM).
+     * La copie du chemin reste possible.
+     *
+     * @return array{
+     *     path: string,
+     *     file_name: string,
+     *     error: ?string,
+     *     application: ?string,
+     *     icon: string,
+     *     edit_uri: ?string,
+     *     explorer_uri: ?string
+     * }
+     */
+    private static function buildLinks(string $path, Settings $settings): array
+    {
+        $links = [
+            'path'        => $path,
+            'file_name'   => LinkBuilder::fileName($path),
+            'error'       => null,
+            'application' => null,
+            'icon'        => 'ti-file',
+            'edit_uri'    => null,
+            'explorer_uri' => null,
+        ];
+
+        try {
+            $canonical = $settings->createNormalizer()->normalize($path);
+        } catch (InvalidPathException $e) {
+            $links['error'] = self::reasonMessage($e->getReason());
+            return $links;
+        }
+
+        $links['path'] = $canonical;
+        $type = LinkBuilder::officeType($canonical);
+        if ($type !== null) {
+            $links['application'] = $type['application'];
+            $links['icon']        = $type['icon'];
+            $links['edit_uri']    = LinkBuilder::officeUri($canonical);
+        }
+        if ($settings->enableFileLinks) {
+            $links['explorer_uri'] = LinkBuilder::explorerUri($canonical);
+        }
+        return $links;
+    }
+
+    /**
+     * Données de l'aperçu JavaScript (reproduction non contractuelle de
+     * PathNormalizer : seule la validation serveur fait foi).
+     *
+     * @return array<string, mixed>
+     */
+    private static function jsConfig(Settings $settings): array
+    {
+        $reasons = [];
+        foreach (
+            [
+                InvalidPathException::EMPTY,
+                InvalidPathException::TOO_LONG,
+                InvalidPathException::INVALID_ENCODING,
+                InvalidPathException::CONTROL_CHAR,
+                InvalidPathException::NOT_UNC,
+                InvalidPathException::DEVICE_PATH,
+                InvalidPathException::UNMAPPED_DRIVE,
+                InvalidPathException::DOT_SEGMENT,
+                InvalidPathException::FORBIDDEN_CHAR,
+                InvalidPathException::FOLDER,
+                InvalidPathException::NO_ALLOWED_ROOTS,
+                InvalidPathException::ROOT_NOT_ALLOWED,
+            ] as $reason
+        ) {
+            $reasons[$reason] = self::reasonMessage($reason);
+        }
+
+        return [
+            'allowedRoots'  => $settings->allowedRoots,
+            'driveMappings' => (object) $settings->driveMappings,
+            'hostAliases'   => (object) $settings->hostAliases,
+            'maxLength'     => PathNormalizer::MAX_LENGTH,
+            'officeTypes'   => LinkBuilder::officeExtensions(),
+            'messages'      => [
+                'valid'      => __('Will be saved as:', 'officelinks'),
+                'invalid'    => __('This path will be rejected:', 'officelinks'),
+                'removal'    => __('The network path will be removed when the document is saved.', 'officelinks'),
+                'office'     => __('Opens with %s.', 'officelinks'),
+                'reasons'    => $reasons,
+            ],
+        ];
+    }
+
+    /**
+     * pre_item_add (Document) : normalise et valide le chemin saisi.
+     */
+    public static function preItemAdd(Document $item): void
+    {
+        self::normalizeInput($item);
+    }
+
+    /**
+     * pre_item_update (Document) : normalise, valide, et s'assure que
+     * item_update sera bien appelé.
+     *
+     * CommonDBTM::update() ne déclenche item_update que si une colonne de
+     * glpi_documents change. Quand seul le chemin change, on met donc à jour
+     * date_mod (sans l'historiser). Le chemin n'est enregistré que dans
+     * item_update, c'est-à-dire seulement si GLPI accepte toute la mise à jour.
+     *
+     * Un chemin enregistré mais devenu invalide (racine retirée de la
+     * configuration) reste en place tant qu'il n'est pas modifié ou vidé.
+     */
+    public static function preItemUpdate(Document $item): void
+    {
+        if (!is_array($item->input) || !array_key_exists(self::FIELD, $item->input)) {
+            return;
+        }
+
+        // Valeur renvoyée telle quelle par le formulaire : rien à faire. On ne
+        // la revalide pas, pour qu'un changement de configuration (racine
+        // retirée) n'empêche pas de modifier le reste du document.
+        $id  = (int) $item->getID();
+        $old = DocumentPath::get($id) ?? '';
+        if ($item->input[self::FIELD] === $old) {
+            unset($item->input[self::FIELD]);
+            return;
+        }
+
+        if (!self::normalizeInput($item)) {
+            return;
+        }
+
+        $new = $item->input[self::FIELD];
+        if ($new === $old) {
+            unset($item->input[self::FIELD]);
+            return;
+        }
+
+        self::forceUpdateHook($item);
+    }
+
+    /**
+     * Garantit que CommonDBTM::update() verra au moins une colonne modifiée,
+     * et donc déclenchera item_update, sans historiser date_mod.
+     *
+     * Si date_mod vaut déjà l'heure courante (deux enregistrements dans la
+     * même seconde), la copie en mémoire $item->fields['date_mod'] est vidée
+     * (chaîne vide et non null, pour que les isset() du cœur restent vrais) :
+     * la comparaison de CommonDBTM::update() détecte alors un changement et
+     * réécrit la même valeur. updateInDB() renvoie vrai même si aucune ligne
+     * n'est modifiée (affected_rows >= 0), donc item_update est bien appelé.
+     * Vérifié dans CommonDBTM::update()/updateInDB() en 11.0.8 et 12.0.1
+     * (voir docs/compat.md).
+     */
+    private static function forceUpdateHook(Document $item): void
+    {
+        $now = $_SESSION['glpi_currenttime'] ?? date('Y-m-d H:i:s');
+        $item->input['date_mod'] = $now;
+        if (!in_array('date_mod', $item->history_blacklist, true)) {
+            $item->history_blacklist[] = 'date_mod';
+        }
+        if (($item->fields['date_mod'] ?? null) === $now) {
+            $item->fields['date_mod'] = '';
+        }
+    }
+
+    /**
+     * item_add (Document) : enregistre le chemin du nouveau document.
+     */
+    public static function itemAdd(Document $item): void
+    {
+        $path = $item->input[self::FIELD] ?? null;
+        if (is_string($path) && $path !== '') {
+            DocumentPath::save((int) $item->getID(), $path);
+        }
+    }
+
+    /**
+     * item_update (Document) : enregistre ou supprime le chemin.
+     */
+    public static function itemUpdate(Document $item): void
+    {
+        $path = $item->input[self::FIELD] ?? null;
+        if (is_string($path)) {
+            self::persist($item, $path);
+        }
+    }
+
+    /**
+     * item_purge (Document) : supprime le chemin du document purgé.
+     */
+    public static function itemPurge(Document $item): void
+    {
+        DocumentPath::delete((int) $item->getID());
+    }
+
+    /**
+     * Normalise $item->input[FIELD] en place.
+     *
+     * @return bool true si le champ est présent et valide (chaîne canonique
+     *              ou chaîne vide = suppression), false s'il est absent ou refusé
+     *              (dans ce cas $item->input vaut false et un message est affiché).
+     */
+    private static function normalizeInput(Document $item): bool
+    {
+        if (!is_array($item->input) || !array_key_exists(self::FIELD, $item->input)) {
+            return false;
+        }
+
+        $raw = $item->input[self::FIELD];
+        if (!is_string($raw)) {
+            self::reject(new InvalidPathException(InvalidPathException::NOT_UNC), '');
+            $item->input = false;
+            return false;
+        }
+
+        if (PathNormalizer::isBlank($raw)) {
+            $item->input[self::FIELD] = '';
+            return true;
+        }
+
+        try {
+            $item->input[self::FIELD] = PluginConfig::load()->createNormalizer()->normalize($raw);
+            return true;
+        } catch (InvalidPathException $e) {
+            self::reject($e, $raw);
+            $item->input = false;
+            return false;
+        }
+    }
+
+    /**
+     * Enregistre (ou supprime si vide) le chemin d'un document existant et
+     * ajoute une ligne à son historique : « Chemin réseau : ancien → nouveau ».
+     */
+    private static function persist(Document $item, string $path): void
+    {
+        $id  = (int) $item->getID();
+        $old = DocumentPath::get($id) ?? '';
+        if ($path === $old) {
+            return;
+        }
+
+        if ($path === '') {
+            DocumentPath::delete($id);
+        } else {
+            DocumentPath::save($id, $path);
+        }
+
+        // Même condition que CommonDBTM::update() pour historiser.
+        if ($item->dohistory && empty($item->input['_no_history'])) {
+            // Log::history() garde les 255 premiers caractères : on garde la fin.
+            Log::history(
+                $id,
+                Document::class,
+                [DocumentPath::SEARCH_OPTION_ID, DocumentPath::forHistory($old), DocumentPath::forHistory($path)],
+                '',
+                0
+            );
+        }
+    }
+
+    /**
+     * Message d'erreur (échappé : les messages après redirection sont
+     * affichés sans échappement).
+     */
+    private static function reject(InvalidPathException $e, string $raw): void
+    {
+        $message = sprintf(
+            __('Network path rejected: %1$s (%2$s)', 'officelinks'),
+            self::reasonMessage($e->getReason()),
+            mb_strimwidth(trim($raw), 0, 200, '…', 'UTF-8')
+        );
+        Session::addMessageAfterRedirect(htmlescape($message), false, ERROR);
+    }
+
+    /**
+     * Texte traduit pour un motif de refus.
+     */
+    public static function reasonMessage(string $reason): string
+    {
+        return match ($reason) {
+            InvalidPathException::EMPTY            => __('the path is empty', 'officelinks'),
+            InvalidPathException::TOO_LONG         => __('the path is too long', 'officelinks'),
+            InvalidPathException::INVALID_ENCODING => __('the path contains invalid characters', 'officelinks'),
+            InvalidPathException::CONTROL_CHAR     => __('the path contains control characters', 'officelinks'),
+            InvalidPathException::NOT_UNC          => __('a UNC path (\\\\server\\share\\...) or a mapped drive letter is expected', 'officelinks'),
+            InvalidPathException::DEVICE_PATH      => __('\\\\?\\ and \\\\.\\ paths are not allowed', 'officelinks'),
+            InvalidPathException::UNMAPPED_DRIVE   => __('this drive letter is not configured', 'officelinks'),
+            InvalidPathException::DOT_SEGMENT      => __('".." is not allowed in the path', 'officelinks'),
+            InvalidPathException::FORBIDDEN_CHAR   => __('the path contains a character forbidden by Windows', 'officelinks'),
+            InvalidPathException::FOLDER           => __('the path must designate a file, not a folder', 'officelinks'),
+            InvalidPathException::NO_ALLOWED_ROOTS => __('no allowed root is configured, contact your administrator', 'officelinks'),
+            InvalidPathException::ROOT_NOT_ALLOWED => __('the path is outside the allowed roots', 'officelinks'),
+            default                                => $reason,
+        };
+    }
+}

@@ -1,0 +1,80 @@
+{#
+ # OfficeLinks — champ « Chemin réseau » de la fiche Document.
+ # Affiché par le hook post_item_form, à l'intérieur du formulaire natif :
+ # la valeur est envoyée avec le reste de la fiche (aucun jeton à ajouter).
+ # Les boutons sont des <a>/<button type="button"> : ils ne soumettent rien.
+ # Échappement Twig par défaut : aucune valeur n'est affichée avec |raw
+ # (le seul |raw est celui de la macro GLPI sur add_field_html, construit
+ # ci-dessous par {% set %} et donc échappé).
+ #}
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+<div class="card-body d-flex flex-wrap officelinks-document">
+    <div class="col-12 flex-column">
+        <div class="row flex-row">
+            {% set below_field %}
+                {% if canedit %}
+                    <div class="officelinks-preview form-text d-none" data-officelinks-preview aria-live="polite"></div>
+                    <div class="form-text">
+                        {{ __('UNC path of the file on the network share. Paste it from File Explorer (Ctrl+Shift+C). Leave empty to remove the link.', 'officelinks') }}
+                    </div>
+                {% endif %}
+
+                {% if links is not null %}
+                    {% if links.error is not null %}
+                        <div class="alert alert-warning officelinks-alert mt-2 mb-0" role="alert">
+                            {{ __('The saved path is no longer allowed (%s): opening links are disabled.', 'officelinks')|format(links.error) }}
+                        </div>
+                    {% endif %}
+
+                    <div class="officelinks-actions mt-2" role="group" aria-label="{{ __('Network path actions', 'officelinks') }}">
+                        {% if links.edit_uri is not null %}
+                            <a class="btn btn-sm btn-primary" href="{{ links.edit_uri }}"
+                               title="{{ links.file_name }}">
+                                <i class="ti {{ links.icon }} me-1" aria-hidden="true"></i>
+                                {{ __('Open in %s', 'officelinks')|format(links.application) }}
+                            </a>
+                        {% endif %}
+
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                data-officelinks-copy="{{ links.path }}"
+                                data-officelinks-copied="{{ __('Path copied to the clipboard.', 'officelinks') }}"
+                                data-officelinks-copy-failed="{{ __('Unable to copy the path. Select it and press Ctrl+C.', 'officelinks') }}">
+                            <i class="ti ti-copy me-1" aria-hidden="true"></i>
+                            {{ __('Copy path', 'officelinks') }}
+                        </button>
+
+                        {% if links.explorer_uri is not null %}
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ links.explorer_uri }}">
+                                <i class="ti ti-folder-open me-1" aria-hidden="true"></i>
+                                {{ __('Show in File Explorer', 'officelinks') }}
+                            </a>
+                        {% endif %}
+
+                        <span class="officelinks-feedback form-text ms-2" data-officelinks-feedback aria-live="polite"></span>
+                    </div>
+                {% endif %}
+            {% endset %}
+
+            {% set attributes = {
+                'placeholder': '\\\\server\\share\\folder\\file.docx',
+                'spellcheck': 'false',
+                'autocomplete': 'off',
+            } %}
+            {% if js_config is not null %}
+                {% set attributes = attributes|merge({
+                    'data-officelinks-input': '1',
+                    'data-officelinks-config': js_config|json_encode,
+                }) %}
+            {% endif %}
+
+            {{ fields.textField(field, path, __('Network path', 'officelinks'), {
+                'full_width': true,
+                'readonly': not canedit,
+                'maxlength': max_length * 4,
+                'add_field_html': below_field,
+                'additional_attributes': attributes,
+            }) }}
+        </div>
+    </div>
+</div>
