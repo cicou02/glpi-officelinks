@@ -222,3 +222,17 @@ Sans `'itemtype'`, l'affichage de la colonne lève `TypeError: DbUtils::getClass
 | `SQLProvider::giveItem()` : `$so['itemtype'] ?? getItemTypeForTable($table)` puis `getItemForItemtype()` | `src/Glpi/Search/Provider/SQLProvider.php:6933-6934` | `…/SQLProvider.php:8088-8089` | `getItemTypeForTable('glpi_plugin_officelinks_documents')` cherche `GlpiPlugin\Officelinks\Document` → `null`. D'où `'itemtype' => Document::class` dans l'option. |
 | Autres lectures de `$so['itemtype']` | `SQLProvider.php:212` (`Session::haveTranslations()`), `:5585`, `:6601` ; `SearchOption.php:622` (`CommonTreeDropdown` ?) | `SQLProvider.php:233`, `:6640`, `:7781` ; `SearchOption.php:667` | Sans effet pour un champ texte de Document (cas propres à d'autres tables ou types). |
 | `Document::getSpecificValueToDisplay()` | hérité de `CommonDBTM` (`src/CommonDBTM.php:4722`) : `''` | `src/Document.php:1086` (seul `filesize`) puis `CommonDBTM` : `''` | Valeur brute affichée, échappée par `giveItem()` (`htmlescape`). |
+
+## Traductions (étape 7)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| `Plugin::loadLang()` : ordre de recherche du `.mo` | `src/Plugin.php:553` (`$CFG_GLPI['languages'][$lang][1]`) | `src/Plugin.php:551` (`LanguageRegistry::tryGet()->mo_file`) | Même ordre : langue de l'utilisateur, puis **langue par défaut de l'instance**, puis `en_GB.mo`. D'où des `.mo` anglais sans traduction (`en_GB`, `en_US`) : sinon un anglophone recevrait la langue par défaut (ex. français). |
+| Noms des fichiers | `fr_FR.mo`, `fr_CA.mo`, `fr_BE.mo`, `en_GB.mo`, `en_US.mo` (`src/autoload/CFG_GLPI.php:65-77`) | idem (`src/Glpi/Locale/LanguageRegistry.php:243-255`, défaut `{code}.mo`) | = |
+| Chargeur gettext | `laminas/laminas-i18n` `^2.30` (`composer.json:45`) | `^2.33` (`composer.json:44`) | `.mo` produits par `tools/locales.php` relus avec ce chargeur (vérification manuelle) : français pour fr_*, texte source pour en_*. |
+| `__()`, `_x()` (contexte = `ctx . "\004" . msgid`) | `src/autoload/i18n.php:57`, `:174` | idem | = |
+
+## Stratégies Edge (documentation Microsoft, consultée le 2026-11-20)
+
+- `AutoLaunchProtocolsFromOrigins` (Edge ≥ 85) : `HKLM\SOFTWARE\Policies\Microsoft\Edge`, `REG_SZ`, JSON `[{"protocol": "...", "allowed_origins": [...]}]` ; protocole en minuscules sans séparateur ; origines sans chemin ni requête. <https://learn.microsoft.com/en-us/deployedge/microsoft-edge-browser-policies/autolaunchprotocolsfromorigins>
+- `IntranetFileLinksEnabled` (Edge ≥ 95) : `REG_DWORD` ; liens `file://` vers des fichiers de la zone Intranet, depuis des pages **HTTPS** de la zone Intranet ; lien vers un fichier → Explorateur sur le dossier parent, fichier sélectionné. <https://learn.microsoft.com/en-us/deployedge/microsoft-edge-browser-policies/intranetfilelinksenabled>

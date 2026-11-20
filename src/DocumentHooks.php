@@ -81,7 +81,7 @@ final class DocumentHooks
      *     application: ?string,
      *     icon: string,
      *     edit_uri: ?string,
-     *     folder_uri: ?string
+     *     explorer_uri: ?string
      * }
      */
     private static function buildLinks(string $path, Settings $settings): array
@@ -93,7 +93,7 @@ final class DocumentHooks
             'application' => null,
             'icon'        => 'ti-file',
             'edit_uri'    => null,
-            'folder_uri'  => null,
+            'explorer_uri' => null,
         ];
 
         try {
@@ -111,7 +111,7 @@ final class DocumentHooks
             $links['edit_uri']    = LinkBuilder::officeUri($canonical);
         }
         if ($settings->enableFileLinks) {
-            $links['folder_uri'] = LinkBuilder::folderUri($canonical);
+            $links['explorer_uri'] = LinkBuilder::explorerUri($canonical);
         }
         return $links;
     }

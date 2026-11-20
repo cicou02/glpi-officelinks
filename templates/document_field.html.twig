@@ -44,8 +44,8 @@
                             {{ __('Copy path', 'officelinks') }}
                         </button>
 
-                        {% if links.folder_uri is not null %}
-                            <a class="btn btn-sm btn-outline-secondary" href="{{ links.folder_uri }}">
+                        {% if links.explorer_uri is not null %}
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ links.explorer_uri }}">
                                 <i class="ti ti-folder-open me-1" aria-hidden="true"></i>
                                 {{ __('Show in File Explorer', 'officelinks') }}
                             </a>

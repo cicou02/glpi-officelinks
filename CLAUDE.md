@@ -46,6 +46,7 @@ templates/           Twig, espace de noms @officelinks
 public/js/ public/css/
 front/config.form.php
 locales/             domaine gettext `officelinks`, source en anglais, traduction fr_FR
+tools/               outils de développement (traductions : php tools/locales.php)
 tests/               PHPUnit (normalisation, validation, encodage)
 docs/compat.md
 README.md CHANGELOG.md LICENSE (GPL-3.0-or-later)
@@ -105,7 +106,7 @@ ms-word:ofe|u|file://internal.example.com/DFS/Informatique/Info/Docs/Linux/Insta
 - Boutons :
   - « Ouvrir dans <Application> » (`ofe`) pour les types Office. **Pas de bouton « Lecture seule » (`ofv`)** : la spécification *Office URI Schemes* ne prévoit `ofv` que pour des URI http(s) ; avec `file://`, Office l'ignore et ouvre en édition (constaté sur le parc, décision du 2026-11-20) ;
   - « Copier le chemin » (`navigator.clipboard`, chemin UNC brut) pour tous les types ;
-  - si `enable_file_links` est activé : « Afficher dans l'Explorateur » (lien `file://` ; nécessite la stratégie Edge `IntranetFileLinksEnabled` sur les postes).
+  - si `enable_file_links` est activé : « Afficher dans l'Explorateur » (lien `file://` **vers le fichier** : avec la stratégie Edge `IntranetFileLinksEnabled`, l'Explorateur s'ouvre sur son dossier, fichier sélectionné ; GLPI doit être en HTTPS et en zone Intranet local).
 - Échappement Twig par défaut. Jamais de filtre `|raw` sur une valeur issue de la saisie.
 
 ## Sécurité — non négociable

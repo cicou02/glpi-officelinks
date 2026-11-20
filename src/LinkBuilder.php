@@ -101,16 +101,16 @@ final class LinkBuilder
     }
 
     /**
-     * URI file:// du dossier contenant le fichier (« Afficher dans
-     * l'Explorateur »), avec la barre finale.
+     * URI file:// du fichier (« Afficher dans l'Explorateur »).
+     *
+     * Avec la stratégie Edge IntranetFileLinksEnabled, un lien vers un
+     * fichier ouvre l'Explorateur sur son dossier parent, fichier
+     * sélectionné (il n'est pas lancé). Conditions : page GLPI en HTTPS et
+     * en zone Intranet local, fichier en zone Intranet local.
      */
-    public static function folderUri(string $canonical): string
+    public static function explorerUri(string $canonical): string
     {
-        $position = strrpos($canonical, '\\');
-        if ($position === false || $position < 2) {
-            throw new InvalidArgumentException('A canonical UNC path is expected.');
-        }
-        return PathNormalizer::toFileUri(substr($canonical, 0, $position)) . '/';
+        return PathNormalizer::toFileUri($canonical);
     }
 
     /**

@@ -70,7 +70,7 @@
 
             {% set file_links_help %}
                 <div class="form-text">
-                    {{ __('Displays a "Show in File Explorer" button on documents, which opens the folder containing the file (file:// link). Disabled by default: it only works if the Microsoft Edge policy IntranetFileLinksEnabled is deployed on workstations.', 'officelinks') }}
+                    {{ __('Displays a "Show in File Explorer" button on documents, which opens the folder containing the file with the file selected (file:// link). Disabled by default: it requires the Microsoft Edge policy IntranetFileLinksEnabled on workstations, GLPI served over HTTPS, and GLPI and the file share in the Local intranet zone.', 'officelinks') }}
                 </div>
             {% endset %}
             {{ fields.checkboxField('enable_file_links', file_links, __('Show the "Show in File Explorer" button', 'officelinks'), {

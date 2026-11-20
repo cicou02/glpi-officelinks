@@ -87,19 +87,19 @@ final class LinkBuilderTest extends TestCase
         );
     }
 
-    public function testFolderUri(): void
+    public function testExplorerUriTargetsTheFile(): void
     {
         $this->assertSame(
-            'file://internal.example.com/DFS/Informatique/Info/Docs/Linux/',
-            LinkBuilder::folderUri(self::DIR . '\\a.pdf')
+            'file://internal.example.com/DFS/Informatique/Info/Docs/Linux/a%20b.pdf',
+            LinkBuilder::explorerUri(self::DIR . '\\a b.pdf')
         );
-        $this->assertSame('file://h/Partage%24/', LinkBuilder::folderUri('\\\\h\\Partage$\\a.pdf'));
+        $this->assertSame('file://h/Partage%24/a.pdf', LinkBuilder::explorerUri('\\\\h\\Partage$\\a.pdf'));
     }
 
-    public function testFolderUriRejectsNonCanonical(): void
+    public function testExplorerUriRejectsNonCanonical(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        LinkBuilder::folderUri('a.docx');
+        LinkBuilder::explorerUri('a.docx');
     }
 
     public function testFileName(): void

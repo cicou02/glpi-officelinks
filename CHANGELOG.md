@@ -34,3 +34,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   (limite de `glpi_logs`), la fin du chemin est conservée, précédée de « … ».
 - Suppression du bouton « Lecture seule » (`ofv` ignoré par Office pour les
   chemins `file://`).
+- Traduction française (fr_FR, fr_CA, fr_BE) ; fichiers anglais (en_GB,
+  en_US) pour qu'un utilisateur anglophone ne reçoive pas la langue par
+  défaut de l'instance. Outil `tools/locales.php` (extraction, mise à jour
+  des .po, compilation des .mo) et test de cohérence des traductions.
+- « Afficher dans l'Explorateur » pointe vers le fichier : avec
+  `IntranetFileLinksEnabled`, l'Explorateur s'ouvre sur le dossier, fichier
+  sélectionné.
+- README complet : installation, mise à jour, configuration, utilisation,
+  déploiement GPO (zone Intranet local, `AutoLaunchProtocolsFromOrigins`,
+  `IntranetFileLinksEnabled`), limites connues, dépannage.
