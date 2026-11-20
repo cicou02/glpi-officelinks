@@ -60,12 +60,14 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      # Aucun cache : setup-node v4 ne met en cache que si « cache: » est
-      # renseigné, et le dépôt n'a pas de package.json.
+      # Cache désactivé explicitement : aucun cache ne doit alimenter
+      # l'archive publiée (recommandation de setup-node pour les workflows
+      # privilégiés).
       - name: Installation de Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v4.4.0  # zizmor: ignore[cache-poisoning]
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+          package-manager-cache: false
 
       - name: Version du plugin
         id: version
