@@ -177,3 +177,14 @@ La classe n'utilise aucune API du cœur de GLPI.
 | Macro `textField` / `input` (`readonly`, `maxlength`, `additional_attributes`) | `fields_macros.html.twig:96` / `basic_inputs_macros.html.twig` | `:100` / idem | `textField` identique ; `input` ne diffère que par les boutons des mots de passe (non utilisés). |
 | `$DB->insert()`, `updateOrInsert()`, `delete()`, `request()` | voir « Base de données » | idem | = |
 | `Plugin::uninstall()` charge le plugin (`self::load($dir, true)`) | `src/Plugin.php:1142` | `src/Plugin.php:1141` | = : `hook.php` peut utiliser `DocumentPath::TABLE` à la désinstallation. |
+
+## Liens et ressources statiques (étape 5)
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| `Hooks::ADD_JAVASCRIPT` → `Html::script("/plugins/officelinks/js/officelinks.js")` | `src/Html.php:6147-6160` | `src/Html.php:5670-5683` | = ; servi depuis `public/js/`. Chargé sur toutes les pages : le script n'agit que sur les éléments `data-officelinks-*`. |
+| `Hooks::ADD_CSS` → `/plugins/officelinks/css/officelinks.css` | `PluginExtension.php:141-170` | `PluginExtension.php:119-148` | = ; servi depuis `public/css/`. |
+| Onglets de la fiche chargés en AJAX | — | — | Le JavaScript délègue ses écouteurs à `document` (pas d'initialisation au chargement). |
+| En-tête `Content-Security-Policy` | absent de `src/` | absent de `src/` | Pas de contrainte sur les scripts ; le plugin n'utilise de toute façon aucun script en ligne. |
+| Icônes Tabler (`@tabler/icons-webfont`) | `^3.34.1` (`package.json:25`) | `^3.35.0` (`package.json:27`) | `ti-file-type-doc`, `ti-file-type-xls`, `ti-file-type-ppt`, `ti-sitemap`, `ti-eye`, `ti-copy`, `ti-folder-open` présentes dans les deux. |
+| Filtres Twig `json_encode`, `format` | Twig `^3.27` (`composer.json:106`) | Twig `^3.27` (`composer.json:111`) | Filtres natifs de Twig. |

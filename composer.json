@@ -29,6 +29,11 @@
         "sort-packages": true
     },
     "scripts": {
-        "test": "phpunit"
+        "test": [
+            "phpunit",
+            "node --test tests/js/officelinks.test.js"
+        ],
+        "test-php": "phpunit",
+        "test-js": "node --test tests/js/officelinks.test.js"
     }
 }

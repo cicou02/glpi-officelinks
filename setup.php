@@ -44,6 +44,10 @@ function plugin_init_officelinks(): void
     // standard (non indexé par type) : DocumentHooks::showField() filtre lui-même.
     $PLUGIN_HOOKS[Hooks::POST_ITEM_FORM]['officelinks'] = [DocumentHooks::class, 'showField'];
 
+    // Ressources statiques (servies depuis public/, URL sans « /public »).
+    $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['officelinks'] = ['js/officelinks.js'];
+    $PLUGIN_HOOKS[Hooks::ADD_CSS]['officelinks']        = ['css/officelinks.css'];
+
     // Validation, persistance et purge, uniquement pour Document.
     $PLUGIN_HOOKS[Hooks::PRE_ITEM_ADD]['officelinks']    = [Document::class => [DocumentHooks::class, 'preItemAdd']];
     $PLUGIN_HOOKS[Hooks::PRE_ITEM_UPDATE]['officelinks'] = [Document::class => [DocumentHooks::class, 'preItemUpdate']];

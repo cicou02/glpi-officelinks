@@ -53,12 +53,113 @@ final class DocumentHooks
             return;
         }
 
+        $settings = PluginConfig::load();
+
         TemplateRenderer::getInstance()->display('@officelinks/document_field.html.twig', [
             'field'      => self::FIELD,
             'path'       => $path ?? '',
             'canedit'    => $canedit,
             'max_length' => PathNormalizer::MAX_LENGTH,
+            'links'      => $path === null ? null : self::buildLinks($path, $settings),
+            'js_config'  => $canedit ? self::jsConfig($settings) : null,
         ]);
+    }
+
+    /**
+     * Liens et boutons pour un chemin enregistré.
+     *
+     * Le chemin est revalidé avec la configuration courante : si sa racine a
+     * été retirée, aucun lien d'ouverture n'est généré (un chemin UNC hors
+     * racine dans un lien ms-word: peut faire fuiter le hash NetNTLM).
+     * La copie du chemin reste possible.
+     *
+     * @return array{
+     *     path: string,
+     *     file_name: string,
+     *     error: ?string,
+     *     application: ?string,
+     *     icon: string,
+     *     edit_uri: ?string,
+     *     view_uri: ?string,
+     *     folder_uri: ?string
+     * }
+     */
+    private static function buildLinks(string $path, Settings $settings): array
+    {
+        $links = [
+            'path'        => $path,
+            'file_name'   => LinkBuilder::fileName($path),
+            'error'       => null,
+            'application' => null,
+            'icon'        => 'ti-file',
+            'edit_uri'    => null,
+            'view_uri'    => null,
+            'folder_uri'  => null,
+        ];
+
+        try {
+            $canonical = $settings->createNormalizer()->normalize($path);
+        } catch (InvalidPathException $e) {
+            $links['error'] = self::reasonMessage($e->getReason());
+            return $links;
+        }
+
+        $links['path'] = $canonical;
+        $type = LinkBuilder::officeType($canonical);
+        if ($type !== null) {
+            $links['application'] = $type['application'];
+            $links['icon']        = $type['icon'];
+            $links['edit_uri']    = LinkBuilder::officeUri($canonical, LinkBuilder::MODE_EDIT);
+            $links['view_uri']    = LinkBuilder::officeUri($canonical, LinkBuilder::MODE_VIEW);
+        }
+        if ($settings->enableFileLinks) {
+            $links['folder_uri'] = LinkBuilder::folderUri($canonical);
+        }
+        return $links;
+    }
+
+    /**
+     * Données de l'aperçu JavaScript (reproduction non contractuelle de
+     * PathNormalizer : seule la validation serveur fait foi).
+     *
+     * @return array<string, mixed>
+     */
+    private static function jsConfig(Settings $settings): array
+    {
+        $reasons = [];
+        foreach (
+            [
+                InvalidPathException::EMPTY,
+                InvalidPathException::TOO_LONG,
+                InvalidPathException::INVALID_ENCODING,
+                InvalidPathException::CONTROL_CHAR,
+                InvalidPathException::NOT_UNC,
+                InvalidPathException::DEVICE_PATH,
+                InvalidPathException::UNMAPPED_DRIVE,
+                InvalidPathException::DOT_SEGMENT,
+                InvalidPathException::FORBIDDEN_CHAR,
+                InvalidPathException::FOLDER,
+                InvalidPathException::NO_ALLOWED_ROOTS,
+                InvalidPathException::ROOT_NOT_ALLOWED,
+            ] as $reason
+        ) {
+            $reasons[$reason] = self::reasonMessage($reason);
+        }
+
+        return [
+            'allowedRoots'  => $settings->allowedRoots,
+            'driveMappings' => (object) $settings->driveMappings,
+            'hostAliases'   => (object) $settings->hostAliases,
+            'maxLength'     => PathNormalizer::MAX_LENGTH,
+            'officeTypes'   => LinkBuilder::officeExtensions(),
+            'messages'      => [
+                'valid'      => __('Will be saved as:', 'officelinks'),
+                'invalid'    => __('This path will be rejected:', 'officelinks'),
+                'removal'    => __('The network path will be removed when the document is saved.', 'officelinks'),
+                'office'     => __('Opens with %s.', 'officelinks'),
+                'reasons'    => $reasons,
+            ],
+        ];
     }
 
     /**

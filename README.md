@@ -6,9 +6,9 @@ native : protocoles Office URI (`ms-word:`, `ms-excel:`…) pour les fichiers
 Office, copie du chemin pour les autres types. Aucun fichier n'est stocké dans
 GLPI.
 
-> **État : en développement (étape 4).** La page de configuration et le champ
-> « Chemin réseau » de la fiche Document sont disponibles ; les boutons
-> d'ouverture arrivent à l'étape suivante.
+> **État : en développement (étape 5).** Configuration, champ « Chemin
+> réseau » et boutons d'ouverture disponibles. Restent : option de recherche,
+> historique, traductions et documentation de déploiement sur les postes.
 
 ## Prérequis
 
@@ -60,6 +60,10 @@ composer install
 ```bash
 composer test
 ```
+
+`composer test` lance PHPUnit puis les tests Node (`node --test
+tests/js/officelinks.test.js`, Node 18 ou plus) ; ces derniers comparent
+l'aperçu JavaScript aux résultats de `PathNormalizer`.
 
 Les sources de GLPI servant de référence de compatibilité sont clonées dans
 `.glpi-src/` (non versionné) ; voir [docs/compat.md](docs/compat.md).
