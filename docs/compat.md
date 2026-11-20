@@ -212,3 +212,13 @@ Source : <https://learn.microsoft.com/en-us/office/client-developer/office-uri-s
 | `Log::history($items_id, $itemtype, $changes, $itemtype_link = '', $linked_action = 0)` | `src/Log.php:231` | `src/Log.php:232` | = (hormis `affectedRows()` → `getAffectedRows()`) ; `$changes = [id_search_option, ancien, nouveau]` ; valeurs tronquées à 255 caractères. |
 | Affichage de l'historique (`Log::getHistoryData()`, `linked_action = 0`) | `src/Log.php:400` | `src/Log.php:401` | = : libellé = `name` de l'option de recherche, texte « Changer <ancien> en <nouveau> » échappé. |
 | `CommonDBTM::$dohistory` | `public $dohistory` (`:104`), `true` pour Document (`src/Document.php:73`) | `public bool $dohistory` (`:108`), `true` (`src/Document.php:88`) | Historisation seulement si `dohistory` et sans `_no_history`, comme `CommonDBTM::update()`. |
+
+### Correctif : clé `itemtype` de l'option de recherche (constaté au test de l'étape 6)
+
+Sans `'itemtype'`, l'affichage de la colonne lève `TypeError: DbUtils::getClassForItemtype(): Argument #1 ($itemtype) must be of type string, null given`.
+
+| API | 11.0.8 | 12.0.1 | Remarque |
+|---|---|---|---|
+| `SQLProvider::giveItem()` : `$so['itemtype'] ?? getItemTypeForTable($table)` puis `getItemForItemtype()` | `src/Glpi/Search/Provider/SQLProvider.php:6933-6934` | `…/SQLProvider.php:8088-8089` | `getItemTypeForTable('glpi_plugin_officelinks_documents')` cherche `GlpiPlugin\Officelinks\Document` → `null`. D'où `'itemtype' => Document::class` dans l'option. |
+| Autres lectures de `$so['itemtype']` | `SQLProvider.php:212` (`Session::haveTranslations()`), `:5585`, `:6601` ; `SearchOption.php:622` (`CommonTreeDropdown` ?) | `SQLProvider.php:233`, `:6640`, `:7781` ; `SearchOption.php:667` | Sans effet pour un champ texte de Document (cas propres à d'autres tables ou types). |
+| `Document::getSpecificValueToDisplay()` | hérité de `CommonDBTM` (`src/CommonDBTM.php:4722`) : `''` | `src/Document.php:1086` (seul `filesize`) puis `CommonDBTM` : `''` | Valeur brute affichée, échappée par `giveItem()` (`htmlescape`). |

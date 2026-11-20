@@ -84,6 +84,13 @@ function plugin_officelinks_getAddSearchOptionsNew($itemtype): array
             'field'         => 'unc_path',
             'name'          => __('Network path', 'officelinks'),
             'datatype'      => 'string',
+            // Indispensable : sans 'itemtype', GLPI déduit la classe de la
+            // table (getItemTypeForTable()), ne trouve aucune classe pour
+            // glpi_plugin_officelinks_documents et l'affichage de la colonne
+            // échoue (TypeError dans getItemForItemtype(null)). Document ne
+            // traite pas le champ unc_path dans getSpecificValueToDisplay() :
+            // la valeur brute est affichée, échappée par GLPI.
+            'itemtype'      => Document::class,
             // Pas de modification en masse : elle contournerait la validation.
             'massiveaction' => false,
             'joinparams'    => [
